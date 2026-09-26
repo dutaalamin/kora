@@ -311,9 +311,10 @@ export default function App() {
 
                   {loading && (
                     <div className="flex justify-start">
-                      <div className="inline-flex items-center gap-2 text-[13px] text-neutral-400">
-                        <Loader2 size={15} className="animate-spin" />
-                        Sedang menyusun jawaban…
+                      <div className="flex items-center gap-1.5 py-1">
+                        <span className="kora-dot" />
+                        <span className="kora-dot" style={{ animationDelay: "0.16s" }} />
+                        <span className="kora-dot" style={{ animationDelay: "0.32s" }} />
                       </div>
                     </div>
                   )}
