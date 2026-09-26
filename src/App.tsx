@@ -140,7 +140,7 @@ export default function App() {
 
   /** Kotak input chat (dipakai di dua tempat: saat kosong & saat ada percakapan). */
   const kotakChat = (
-    <div className="flex items-center gap-2 rounded-full bg-[#1f1f1f] py-1.5 pl-5 pr-1.5">
+    <div className="flex items-center gap-2 rounded-full bg-[#1f1f1f] py-2 pl-7 pr-2">
       <textarea
         ref={areaTeks}
         value={input}
@@ -148,15 +148,15 @@ export default function App() {
         onKeyDown={onKey}
         rows={1}
         placeholder="Ask Kora"
-        className="max-h-[180px] min-h-[26px] flex-1 resize-none self-center bg-transparent py-1.5 text-[15px] text-white outline-none placeholder:text-neutral-300"
+        className="max-h-[180px] min-h-[30px] flex-1 resize-none self-center bg-transparent py-1.5 text-[17px] text-white outline-none placeholder:text-neutral-300"
       />
       <button
         onClick={() => kirim()}
         disabled={loading || !input.trim()}
-        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#3a3a3a] text-white transition hover:bg-[#4a4a4a] disabled:opacity-40"
+        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#3a3a3a] text-white transition hover:bg-[#4a4a4a] disabled:opacity-40"
         aria-label="Kirim"
       >
-        {loading ? <Loader2 size={18} className="animate-spin" /> : <Send size={17} />}
+        {loading ? <Loader2 size={19} className="animate-spin" /> : <Send size={18} />}
       </button>
     </div>
   );
