@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import {
   Send, Loader2, Copy, Check, AlertCircle,
-  Plus, PanelLeft, Trash2, MessageSquare, SquarePen,
+  Plus, PanelLeft, Trash2, SquarePen,
 } from "lucide-react";
 import {
   kirimChat, idBaru, judulDari, muatSemua, simpanSemua,
@@ -47,7 +47,7 @@ export default function App() {
   function baru() {
     const p: Percakapan = {
       id: idBaru(),
-      judul: "Percakapan baru",
+      judul: "New chat",
       pesan: [],
       dibuat: Date.now(),
       diubah: Date.now(),
@@ -184,51 +184,56 @@ export default function App() {
           </button>
         </div>
 
-        {/* Chat baru */}
+        {/* New chat */}
         <div className="px-2 pb-2 pt-2">
           <button
             onClick={baru}
-            className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-[13px] font-medium text-white transition hover:bg-[#1a1a1a]"
+            className="flex w-full items-center gap-2.5 rounded-lg bg-[#1a1a1a] px-3 py-2.5 text-[13.5px] font-medium text-white transition hover:bg-[#242424]"
           >
             <SquarePen size={17} />
-            Chat baru
+            New chat
           </button>
         </div>
 
         {/* Riwayat */}
         <div className="flex-1 overflow-y-auto px-2 pb-3">
-          {urut.length === 0 && (
+          {urut.length === 0 ? (
             <p className="px-3 py-6 text-center text-[12px] text-neutral-500">
-              Belum ada riwayat
+              No conversations yet
             </p>
+          ) : (
+            <>
+              <p className="px-3 pb-1 pt-3 text-[11.5px] font-medium text-neutral-500">
+                Recents
+              </p>
+              {urut.map((p) => (
+                <div
+                  key={p.id}
+                  className={`group flex items-center gap-1 rounded-lg pr-1 transition ${
+                    p.id === aktifId ? "bg-[#1a1a1a]" : "hover:bg-[#141414]"
+                  }`}
+                >
+                  <button
+                    onClick={() => {
+                      setAktifId(p.id);
+                      setError("");
+                      if (window.innerWidth < 768) setSidebar(false);
+                    }}
+                    className="flex min-w-0 flex-1 items-center px-3 py-2.5 text-left"
+                  >
+                    <span className="truncate text-[13.5px] text-neutral-200">{p.judul}</span>
+                  </button>
+                  <button
+                    onClick={() => hapus(p.id)}
+                    className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-neutral-500 opacity-0 transition group-hover:opacity-100 hover:bg-[#242424] hover:text-white"
+                    aria-label="Delete"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+              ))}
+            </>
           )}
-          {urut.map((p) => (
-            <div
-              key={p.id}
-              className={`group flex items-center gap-1 rounded-lg pr-1 transition ${
-                p.id === aktifId ? "bg-[#1a1a1a]" : "hover:bg-[#141414]"
-              }`}
-            >
-              <button
-                onClick={() => {
-                  setAktifId(p.id);
-                  setError("");
-                  if (window.innerWidth < 768) setSidebar(false);
-                }}
-                className="flex min-w-0 flex-1 items-center gap-2.5 px-2.5 py-2.5 text-left"
-              >
-                <MessageSquare size={15} className="shrink-0 text-neutral-500" />
-                <span className="truncate text-[13px] text-neutral-200">{p.judul}</span>
-              </button>
-              <button
-                onClick={() => hapus(p.id)}
-                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-neutral-500 opacity-0 transition group-hover:opacity-100 hover:bg-[#242424] hover:text-white"
-                aria-label="Hapus"
-              >
-                <Trash2 size={14} />
-              </button>
-            </div>
-          ))}
         </div>
       </aside>
 

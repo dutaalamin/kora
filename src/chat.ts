@@ -29,7 +29,7 @@ export function idBaru(): string {
 /** Ambil judul dari pesan pertama (maks 40 huruf). */
 export function judulDari(teks: string): string {
   const t = teks.trim().replace(/\s+/g, " ");
-  return t.length > 40 ? t.slice(0, 40) + "…" : t || "Percakapan baru";
+  return t.length > 40 ? t.slice(0, 40) + "…" : t || "New chat";
 }
 
 /** Muat semua percakapan dari localStorage. */
