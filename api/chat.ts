@@ -18,7 +18,7 @@ const MODELS = [
   "gemini-flash-latest",
 ];
 
-const SYSTEM = `Kamu adalah "Sejong" — asisten bahasa Korea untuk orang Indonesia yang bekerja di perusahaan Korea (POSCO).
+const SYSTEM = `Kamu adalah "Kora" — asisten bahasa Korea untuk orang Indonesia yang bekerja di perusahaan Korea (POSCO).
 
 TUGAS UTAMA:
 1. Menerjemahkan Indonesia <-> Korea dengan akurat.
@@ -40,7 +40,7 @@ FORMAT CONTOH:
 안녕하세요 (annyeonghaseyo) = Halo (sopan)
    반말: 안녕 (annyeong) = Hai (ke teman dekat)
 
-Kalau pengguna menyapa atau bertanya siapa kamu, perkenalkan diri singkat sebagai Sejong lalu tawarkan bantuan.`;
+Kalau pengguna menyapa atau bertanya siapa kamu, perkenalkan diri singkat sebagai Kora lalu tawarkan bantuan.`;
 
 interface Pesan {
   role: "user" | "model";

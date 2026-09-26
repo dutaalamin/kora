@@ -138,6 +138,29 @@ export default function App() {
 
   const urut = [...daftar].sort((a, b) => b.diubah - a.diubah);
 
+  /** Kotak input chat (dipakai di dua tempat: saat kosong & saat ada percakapan). */
+  const kotakChat = (
+    <div className="flex items-end gap-2 rounded-3xl border border-[#2a2a2a] bg-[#141414] p-2 pl-4 focus-within:border-[#4a4a4a]">
+      <textarea
+        ref={areaTeks}
+        value={input}
+        onChange={(e) => setInput(e.target.value)}
+        onKeyDown={onKey}
+        rows={1}
+        placeholder="물어보세요… tanya apa saja soal bahasa Korea"
+        className="max-h-[180px] min-h-[28px] flex-1 resize-none bg-transparent py-1.5 text-[14px] text-white outline-none placeholder:text-neutral-500"
+      />
+      <button
+        onClick={() => kirim()}
+        disabled={loading || !input.trim()}
+        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white text-black transition hover:bg-neutral-200 disabled:opacity-30"
+        aria-label="Kirim"
+      >
+        {loading ? <Loader2 size={17} className="animate-spin" /> : <Send size={16} />}
+      </button>
+    </div>
+  );
+
   return (
     <div className="flex h-full bg-black text-white">
       {/* Sidebar */}
@@ -152,7 +175,7 @@ export default function App() {
             <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#1a1a1a]">
               <Languages size={16} className="text-white" />
             </span>
-            <span className="text-[15px] font-semibold tracking-tight text-white">Sejong</span>
+            <span className="text-[15px] font-semibold tracking-tight text-white">Kora</span>
           </div>
           <button
             onClick={() => setSidebar(false)}
@@ -234,103 +257,83 @@ export default function App() {
 
         {/* Percakapan */}
         <main className="flex-1 overflow-y-auto">
-          <div className="mx-auto max-w-[760px] px-4 py-6">
-            {pesan.length === 0 && (
-              <div className="flex min-h-[68vh] items-center justify-center">
-                <div className="text-center">
-                  <h2 className="kr text-[28px] font-semibold text-white sm:text-[32px]">
-                    무엇을 도와드릴까요?
-                  </h2>
-                  <p className="mt-3 text-[14px] text-neutral-400">
-                    How can I help you in Korean?
-                  </p>
-                </div>
+          <div className="mx-auto flex min-h-full max-w-[760px] flex-col px-4 py-6">
+            {pesan.length === 0 ? (
+              <div className="flex flex-1 flex-col items-center justify-center pb-[12vh]">
+                <h2 className="kr text-[28px] font-semibold text-white sm:text-[32px]">
+                  무엇을 도와드릴까요?
+                </h2>
+                <p className="mt-3 text-[14px] text-neutral-400">
+                  How can I help you in Korean?
+                </p>
+                {/* Kotak chat tepat di bawah sambutan */}
+                <div className="mt-8 w-full max-w-[720px]">{kotakChat}</div>
               </div>
+            ) : (
+              <>
+                <div className="flex-1 space-y-6">
+                  {pesan.map((m, i) => (
+                    <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
+                      <div className="max-w-[88%]">
+                        {m.role === "user" ? (
+                          <div className="whitespace-pre-wrap rounded-3xl bg-[#1f1f1f] px-4 py-2.5 text-[14px] leading-relaxed text-white">
+                            {m.text}
+                          </div>
+                        ) : (
+                          <div className="kr text-[14px] leading-relaxed text-white">
+                            <div className="markdown">
+                              <ReactMarkdown remarkPlugins={[remarkGfm]}>{m.text}</ReactMarkdown>
+                            </div>
+                            <button
+                              onClick={() => salin(i, m.text)}
+                              className="mt-2 inline-flex items-center gap-1.5 rounded-md px-1.5 py-1 text-[11px] font-medium text-neutral-500 transition hover:bg-[#1a1a1a] hover:text-neutral-200"
+                            >
+                              {copied === i ? <Check size={12} /> : <Copy size={12} />}
+                              {copied === i ? "Tersalin" : "Salin"}
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+
+                  {loading && (
+                    <div className="flex justify-start">
+                      <div className="inline-flex items-center gap-2 text-[13px] text-neutral-400">
+                        <Loader2 size={15} className="animate-spin" />
+                        Sedang menyusun jawaban…
+                      </div>
+                    </div>
+                  )}
+
+                  {error && (
+                    <div
+                      role="alert"
+                      className="flex items-center gap-3 rounded-xl border border-[#2a2a2a] bg-[#141414] px-4 py-3 text-[13px] text-neutral-100"
+                    >
+                      <AlertCircle size={16} className="shrink-0" />
+                      <span className="flex-1">{error}</span>
+                      <button
+                        onClick={() => {
+                          const terakhir = pesan.filter((p) => p.role === "user").pop();
+                          if (terakhir) kirim(terakhir.text);
+                        }}
+                        className="shrink-0 rounded-lg border border-[#3a3a3a] px-3 py-1.5 text-[12px] font-medium text-white transition hover:bg-[#242424]"
+                      >
+                        Coba lagi
+                      </button>
+                    </div>
+                  )}
+
+                  <div ref={bawah} />
+                </div>
+
+                {/* Kotak chat di bawah saat sudah ada percakapan */}
+                <div className="pt-4">{kotakChat}</div>
+              </>
             )}
-
-            <div className="space-y-6">
-              {pesan.map((m, i) => (
-                <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
-                  <div className="max-w-[88%]">
-                    {m.role === "user" ? (
-                      <div className="whitespace-pre-wrap rounded-3xl bg-[#1f1f1f] px-4 py-2.5 text-[14px] leading-relaxed text-white">
-                        {m.text}
-                      </div>
-                    ) : (
-                      <div className="kr text-[14px] leading-relaxed text-white">
-                        <div className="markdown">
-                          <ReactMarkdown remarkPlugins={[remarkGfm]}>{m.text}</ReactMarkdown>
-                        </div>
-                        <button
-                          onClick={() => salin(i, m.text)}
-                          className="mt-2 inline-flex items-center gap-1.5 rounded-md px-1.5 py-1 text-[11px] font-medium text-neutral-500 transition hover:bg-[#1a1a1a] hover:text-neutral-200"
-                        >
-                          {copied === i ? <Check size={12} /> : <Copy size={12} />}
-                          {copied === i ? "Tersalin" : "Salin"}
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))}
-
-              {loading && (
-                <div className="flex justify-start">
-                  <div className="inline-flex items-center gap-2 text-[13px] text-neutral-400">
-                    <Loader2 size={15} className="animate-spin" />
-                    Sedang menyusun jawaban…
-                  </div>
-                </div>
-              )}
-
-              {error && (
-                <div
-                  role="alert"
-                  className="flex items-center gap-3 rounded-xl border border-[#2a2a2a] bg-[#141414] px-4 py-3 text-[13px] text-neutral-100"
-                >
-                  <AlertCircle size={16} className="shrink-0" />
-                  <span className="flex-1">{error}</span>
-                  <button
-                    onClick={() => {
-                      const terakhir = pesan.filter((p) => p.role === "user").pop();
-                      if (terakhir) kirim(terakhir.text);
-                    }}
-                    className="shrink-0 rounded-lg border border-[#3a3a3a] px-3 py-1.5 text-[12px] font-medium text-white transition hover:bg-[#242424]"
-                  >
-                    Coba lagi
-                  </button>
-                </div>
-              )}
-
-              <div ref={bawah} />
-            </div>
           </div>
         </main>
-
-        {/* Input */}
-        <footer className="bg-black px-4 pb-5 pt-2">
-          <div className="mx-auto max-w-[760px]">
-            <div className="flex items-end gap-2 rounded-3xl border border-[#2a2a2a] bg-[#141414] p-2 pl-4 focus-within:border-[#4a4a4a]">
-              <textarea
-                ref={areaTeks}
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={onKey}
-                rows={1}
-                placeholder="물어보세요… tanya apa saja soal bahasa Korea"
-                className="max-h-[180px] min-h-[28px] flex-1 resize-none bg-transparent py-1.5 text-[14px] text-white outline-none placeholder:text-neutral-500"
-              />
-              <button
-                onClick={() => kirim()}
-                disabled={loading || !input.trim()}
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white text-black transition hover:bg-neutral-200 disabled:opacity-30"
-                aria-label="Kirim"
-              >
-                {loading ? <Loader2 size={17} className="animate-spin" /> : <Send size={16} />}
-              </button>
-            </div>
-          </div>
-        </footer>
       </div>
 
       {/* Tombol chat baru (HP) */}
