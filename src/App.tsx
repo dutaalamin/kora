@@ -238,7 +238,7 @@ export default function App() {
                   무엇을 도와드릴까요?
                 </h2>
                 <p className="kr mt-1.5 text-[13px] text-slate-400">
-                  무엇이든 물어보세요 — 한국어에 대해
+                  한국어에 대해 무엇이든 물어보세요
                 </p>
                 <p className="mx-auto mt-3 max-w-[440px] text-[13px] text-slate-500">
                   Tanya apa saja soal bahasa Korea — terjemah, arti kata, koreksi kalimat, atau
