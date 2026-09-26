@@ -14,19 +14,19 @@
 
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 
-/** Dicoba berurutan; kalau sibuk, lanjut ke berikutnya. */
+/** Dicoba berurutan dari yang tercepat; kalau sibuk/lambat, lanjut berikutnya. */
 const MODELS = [
-  "gemini-3.8-flash",
-  "gemini-3.7-flash",
-  "gemini-3.6-flash",
-  "gemini-3.5-flash",
-  "gemini-3.8-flash-lite",
   "gemini-3.5-flash-lite",
+  "gemini-3.8-flash",
+  "gemini-3.6-flash",
+  "gemini-3.7-flash",
+  "gemini-3.8-flash-lite",
   "gemini-flash-latest",
 ];
 
 const PUTARAN = 2; // berapa kali mencoba seluruh daftar
-const JEDA_MS = 700; // jeda antar putaran
+const JEDA_MS = 500; // jeda antar putaran
+const TIMEOUT_MS = 12000; // batas waktu tiap percobaan (biar tidak lama menunggu)
 
 const SYSTEM = `Kamu adalah "Kora" — asisten bahasa Korea untuk orang Indonesia yang bekerja di perusahaan Korea (POSCO).
 
@@ -92,11 +92,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     for (const model of MODELS) {
       const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(key)}`;
       try {
-        const r = await fetch(url, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body,
-        });
+        const ctrl = new AbortController();
+        const jam = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
+        let r: Response;
+        try {
+          r = await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body,
+            signal: ctrl.signal,
+          });
+        } finally {
+          clearTimeout(jam);
+        }
 
         const data = (await r.json()) as {
           candidates?: { content?: { parts?: { text?: string }[] } }[];
