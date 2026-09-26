@@ -164,7 +164,7 @@ export default function App() {
         onKeyDown={onKey}
         rows={1}
         placeholder="Ask Kora"
-        className="max-h-[180px] min-h-[30px] flex-1 resize-none self-center bg-transparent py-1.5 text-[17px] text-white outline-none placeholder:text-neutral-400"
+        className="max-h-[180px] min-h-[30px] flex-1 resize-none self-center bg-transparent py-1.5 text-[16px] text-white outline-none placeholder:text-neutral-400"
       />
       <button
         onClick={() => kirim()}
@@ -204,7 +204,7 @@ export default function App() {
         <div className="px-2 pb-2 pt-2">
           <button
             onClick={newChat}
-            className="flex w-full items-center gap-2.5 rounded-lg bg-[#1a1a1a] px-3 py-2.5 text-[13.5px] font-medium text-white transition hover:bg-[#242424]"
+            className="flex w-full items-center gap-2.5 rounded-lg bg-[#1a1a1a] px-3 py-2.5 text-[14px] font-medium text-white transition hover:bg-[#242424]"
           >
             <SquarePen size={17} />
             New chat
@@ -237,7 +237,7 @@ export default function App() {
                     }}
                     className="flex min-w-0 flex-1 items-center px-3 py-2.5 text-left"
                   >
-                    <span className="truncate text-[13.5px] text-neutral-200">{p.judul}</span>
+                    <span className="truncate text-[14px] text-neutral-200">{p.judul}</span>
                   </button>
                   <button
                     onClick={() => removeChat(p.id)}
@@ -291,7 +291,7 @@ export default function App() {
                 <h2 className="text-[28px] font-semibold text-white sm:text-[32px]">
                   How can I help you?
                 </h2>
-                <p className="mt-3 text-[14px] text-neutral-400">
+                <p className="mt-3 text-[15px] text-neutral-400">
                   Ask me anything about Korean
                 </p>
                 {/* Chat box right under the greeting */}
@@ -304,11 +304,11 @@ export default function App() {
                     <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
                       <div className="max-w-[88%]">
                         {m.role === "user" ? (
-                          <div className="whitespace-pre-wrap rounded-3xl bg-[#1f1f1f] px-4 py-2.5 text-[14px] leading-relaxed text-white">
+                          <div className="whitespace-pre-wrap rounded-3xl bg-[#1f1f1f] px-4 py-2.5 text-[16px] leading-relaxed text-white">
                             {m.text}
                           </div>
                         ) : (
-                          <div className="kr text-[14px] leading-relaxed text-white">
+                          <div className="kr text-[16px] leading-relaxed text-white">
                             <div className="markdown">
                               <ReactMarkdown remarkPlugins={[remarkGfm]}>{m.text}</ReactMarkdown>
                             </div>
@@ -342,7 +342,7 @@ export default function App() {
                           const terakhir = pesan.filter((p) => p.role === "user").pop();
                           if (terakhir) kirim(terakhir.text);
                         }}
-                        className="inline-flex items-center gap-2 rounded-full border border-[#3a3a3a] bg-[#1f1f1f] px-4 py-2 text-[13px] font-medium text-white transition hover:bg-[#2a2a2a]"
+                        className="inline-flex items-center gap-2 rounded-full border border-[#3a3a3a] bg-[#1f1f1f] px-4 py-2 text-[13.5px] font-medium text-white transition hover:bg-[#2a2a2a]"
                       >
                         <RotateCw size={14} />
                         Retry
