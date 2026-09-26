@@ -148,7 +148,7 @@ export default function App() {
         onKeyDown={onKey}
         rows={1}
         placeholder="Ask Kora"
-        className="max-h-[180px] min-h-[30px] flex-1 resize-none self-center bg-transparent py-1.5 text-[17px] text-white outline-none placeholder:text-neutral-500"
+        className="max-h-[180px] min-h-[30px] flex-1 resize-none self-center bg-transparent py-1.5 text-[17px] text-white outline-none placeholder:text-neutral-400"
       />
       <button
         onClick={() => kirim()}
