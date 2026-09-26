@@ -14,7 +14,7 @@ body,
 
 body {
   margin: 0;
-  background: #212121;
+  background: #0d0d0d;
   color: #ececec;
   -webkit-font-smoothing: antialiased;
 }
@@ -79,11 +79,11 @@ body {
 .markdown hr {
   margin: 0.9rem 0;
   border: 0;
-  border-top: 1px solid #3a3a3a;
+  border-top: 1px solid #2a2a2a;
 }
 .markdown code {
   border-radius: 0.35rem;
-  background: #2f2f2f;
+  background: #1f1f1f;
   padding: 0.1rem 0.35rem;
   font-size: 0.85em;
 }
@@ -91,7 +91,7 @@ body {
   margin: 0.5rem 0;
   overflow-x: auto;
   border-radius: 0.6rem;
-  background: #2f2f2f;
+  background: #1f1f1f;
   padding: 0.75rem;
 }
 .markdown pre code {
@@ -106,17 +106,17 @@ body {
 }
 .markdown th,
 .markdown td {
-  border: 1px solid #3a3a3a;
+  border: 1px solid #2a2a2a;
   padding: 0.35rem 0.6rem;
   text-align: left;
 }
 .markdown th {
-  background: #262626;
+  background: #141414;
   font-weight: 600;
 }
 .markdown blockquote {
   margin: 0.5rem 0;
-  border-left: 3px solid #4a4a4a;
+  border-left: 3px solid #3a3a3a;
   padding-left: 0.75rem;
   color: #94a3b8;
 }

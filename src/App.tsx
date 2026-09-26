@@ -141,24 +141,24 @@ export default function App() {
   const urut = [...daftar].sort((a, b) => b.diubah - a.diubah);
 
   return (
-    <div className="flex h-full bg-[#212121] text-slate-100">
+    <div className="flex h-full bg-[#0d0d0d] text-slate-100">
       {/* Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-40 flex w-[260px] shrink-0 flex-col bg-[#171717] transition-transform duration-200 md:static md:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-40 flex w-[260px] shrink-0 flex-col bg-[#000000] transition-transform duration-200 md:static md:translate-x-0 ${
           sidebar ? "translate-x-0" : "-translate-x-full md:hidden"
         }`}
       >
         <div className="flex items-center justify-between px-3 py-3">
           <button
             onClick={baru}
-            className="flex flex-1 items-center gap-2 rounded-lg px-2.5 py-2 text-[13px] font-medium text-slate-200 transition hover:bg-[#2a2a2a]"
+            className="flex flex-1 items-center gap-2 rounded-lg px-2.5 py-2 text-[13px] font-medium text-slate-200 transition hover:bg-[#1a1a1a]"
           >
             <SquarePen size={17} />
             Chat baru
           </button>
           <button
             onClick={() => setSidebar(false)}
-            className="ml-1 hidden h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-[#2a2a2a] hover:text-slate-100 md:flex"
+            className="ml-1 hidden h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-[#1a1a1a] hover:text-slate-100 md:flex"
             aria-label="Tutup sidebar"
           >
             <PanelLeft size={17} />
@@ -175,7 +175,7 @@ export default function App() {
             <div
               key={p.id}
               className={`group flex items-center gap-1 rounded-lg pr-1 transition ${
-                p.id === aktifId ? "bg-[#2a2a2a]" : "hover:bg-[#212121]"
+                p.id === aktifId ? "bg-[#1a1a1a]" : "hover:bg-[#0d0d0d]"
               }`}
             >
               <button
@@ -191,7 +191,7 @@ export default function App() {
               </button>
               <button
                 onClick={() => hapus(p.id)}
-                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-slate-500 opacity-0 transition group-hover:opacity-100 hover:bg-[#333] hover:text-slate-200"
+                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-slate-500 opacity-0 transition group-hover:opacity-100 hover:bg-[#242424] hover:text-slate-200"
                 aria-label="Hapus"
               >
                 <Trash2 size={14} />
@@ -212,10 +212,10 @@ export default function App() {
       {/* Area utama */}
       <div className="flex min-w-0 flex-1 flex-col">
         {/* Header */}
-        <header className="flex items-center gap-2 border-b border-[#2f2f2f] px-3 py-2.5">
+        <header className="flex items-center gap-2 border-b border-[#1f1f1f] px-3 py-2.5">
           <button
             onClick={() => setSidebar((v) => !v)}
-            className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 transition hover:bg-[#2a2a2a] hover:text-slate-100"
+            className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 transition hover:bg-[#1a1a1a] hover:text-slate-100"
             aria-label="Buka sidebar"
           >
             <PanelLeft size={18} />
@@ -233,7 +233,7 @@ export default function App() {
           <div className="mx-auto max-w-[760px] px-4 py-6">
             {pesan.length === 0 && (
               <div className="py-12 text-center">
-                <span className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#2a2a2a] text-slate-200">
+                <span className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#1a1a1a] text-slate-200">
                   <Sparkles size={24} />
                 </span>
                 <h2 className="text-xl font-semibold text-slate-100">
@@ -249,7 +249,7 @@ export default function App() {
                     <button
                       key={s}
                       onClick={() => kirim(s)}
-                      className="rounded-xl border border-[#3a3a3a] bg-[#2a2a2a] px-4 py-3 text-left text-[12.5px] text-slate-300 transition hover:bg-[#333]"
+                      className="rounded-xl border border-[#2a2a2a] bg-[#1a1a1a] px-4 py-3 text-left text-[12.5px] text-slate-300 transition hover:bg-[#242424]"
                     >
                       {s}
                     </button>
@@ -263,7 +263,7 @@ export default function App() {
                 <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
                   <div className="max-w-[88%]">
                     {m.role === "user" ? (
-                      <div className="whitespace-pre-wrap rounded-3xl bg-[#2f2f2f] px-4 py-2.5 text-[14px] leading-relaxed text-slate-100">
+                      <div className="whitespace-pre-wrap rounded-3xl bg-[#1f1f1f] px-4 py-2.5 text-[14px] leading-relaxed text-slate-100">
                         {m.text}
                       </div>
                     ) : (
@@ -273,7 +273,7 @@ export default function App() {
                         </div>
                         <button
                           onClick={() => salin(i, m.text)}
-                          className="mt-2 inline-flex items-center gap-1.5 rounded-md px-1.5 py-1 text-[11px] font-medium text-slate-500 transition hover:bg-[#2a2a2a] hover:text-slate-300"
+                          className="mt-2 inline-flex items-center gap-1.5 rounded-md px-1.5 py-1 text-[11px] font-medium text-slate-500 transition hover:bg-[#1a1a1a] hover:text-slate-300"
                         >
                           {copied === i ? <Check size={12} /> : <Copy size={12} />}
                           {copied === i ? "Tersalin" : "Salin"}
@@ -296,10 +296,19 @@ export default function App() {
               {error && (
                 <div
                   role="alert"
-                  className="flex items-center gap-2 rounded-xl border border-[#4a4a4a] bg-[#2a2a2a] px-3.5 py-2.5 text-[13px] text-slate-200"
+                  className="flex items-center gap-3 rounded-xl border border-[#3a3a3a] bg-[#1a1a1a] px-4 py-3 text-[13px] text-slate-200"
                 >
-                  <AlertCircle size={15} />
-                  {error}
+                  <AlertCircle size={16} className="shrink-0" />
+                  <span className="flex-1">{error}</span>
+                  <button
+                    onClick={() => {
+                      const terakhir = pesan.filter((p) => p.role === "user").pop();
+                      if (terakhir) kirim(terakhir.text);
+                    }}
+                    className="shrink-0 rounded-lg border border-[#4a4a4a] px-3 py-1.5 text-[12px] font-medium text-slate-200 transition hover:bg-[#2a2a2a]"
+                  >
+                    Coba lagi
+                  </button>
                 </div>
               )}
 
@@ -311,7 +320,7 @@ export default function App() {
         {/* Input */}
         <footer className="px-4 pb-5 pt-2">
           <div className="mx-auto max-w-[760px]">
-            <div className="flex items-end gap-2 rounded-3xl border border-[#3a3a3a] bg-[#2a2a2a] p-2 pl-4 focus-within:border-[#555]">
+            <div className="flex items-end gap-2 rounded-3xl border border-[#2a2a2a] bg-[#1a1a1a] p-2 pl-4 focus-within:border-[#4a4a4a]">
               <textarea
                 ref={areaTeks}
                 value={input}
@@ -324,7 +333,7 @@ export default function App() {
               <button
                 onClick={() => kirim()}
                 disabled={loading || !input.trim()}
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white text-[#212121] transition hover:bg-slate-200 disabled:opacity-30"
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white text-[#0d0d0d] transition hover:bg-slate-200 disabled:opacity-30"
                 aria-label="Kirim"
               >
                 {loading ? <Loader2 size={17} className="animate-spin" /> : <Send size={16} />}
@@ -340,7 +349,7 @@ export default function App() {
       {/* Tombol chat baru (HP) */}
       <button
         onClick={baru}
-        className="fixed bottom-32 right-4 z-20 flex h-11 w-11 items-center justify-center rounded-full bg-[#2f2f2f] text-slate-200 shadow-lg transition hover:bg-[#3a3a3a] md:hidden"
+        className="fixed bottom-32 right-4 z-20 flex h-11 w-11 items-center justify-center rounded-full bg-[#1f1f1f] text-slate-200 shadow-lg transition hover:bg-[#2a2a2a] md:hidden"
         aria-label="Chat baru"
       >
         <Plus size={19} />

@@ -5,12 +5,18 @@
  * Balasan: { reply: string }
  *
  * API key disimpan di env GEMINI_API_KEY (tidak pernah sampai ke browser).
+ * Model dicoba berurutan (fallback) supaya tidak gagal saat satu model sibuk.
  */
 
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 
-const MODEL = "gemini-flash-latest";
-const ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`;
+/** Dicoba dari atas ke bawah sampai ada yang berhasil. */
+const MODELS = [
+  "gemini-3.8-flash",
+  "gemini-3.7-flash",
+  "gemini-3.6-flash",
+  "gemini-flash-latest",
+];
 
 const SYSTEM = `Kamu adalah "Asisten Bahasa Korea" untuk orang Indonesia yang bekerja di perusahaan Korea (POSCO).
 
@@ -49,9 +55,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const key = process.env.GEMINI_API_KEY;
   if (!key) {
-    return res.status(500).json({
-      error: "GEMINI_API_KEY belum di-set. Hubungi admin.",
-    });
+    return res.status(500).json({ error: "GEMINI_API_KEY belum di-set. Hubungi admin." });
   }
 
   const messages = req.body?.messages as Pesan[] | undefined;
@@ -59,48 +63,68 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(400).json({ error: "Tidak ada pesan." });
   }
 
-  // Batasi panjang agar tidak boros kuota
-  const trimmed = messages.slice(-20).map((m) => ({
+  const contents = messages.slice(-20).map((m) => ({
     role: m.role === "model" ? "model" : "user",
     parts: [{ text: String(m.text ?? "").slice(0, 4000) }],
   }));
 
-  try {
-    const r = await fetch(`${ENDPOINT}?key=${encodeURIComponent(key)}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        systemInstruction: { parts: [{ text: SYSTEM }] },
-        contents: trimmed,
-        generationConfig: {
-          temperature: 0.6,
-          maxOutputTokens: 1500,
-        },
-      }),
-    });
+  const body = JSON.stringify({
+    systemInstruction: { parts: [{ text: SYSTEM }] },
+    contents,
+    generationConfig: { temperature: 0.6, maxOutputTokens: 1500 },
+  });
 
-    const data = (await r.json()) as {
-      candidates?: { content?: { parts?: { text?: string }[] } }[];
-      error?: { message?: string };
-    };
+  let terakhirSibuk = false;
 
-    if (!r.ok) {
-      const pesan = data.error?.message ?? "Gagal menghubungi AI.";
-      return res.status(r.status === 429 ? 429 : 502).json({ error: pesan });
+  // Coba tiap model sampai berhasil
+  for (const model of MODELS) {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(key)}`;
+    try {
+      const r = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body,
+      });
+
+      const data = (await r.json()) as {
+        candidates?: { content?: { parts?: { text?: string }[] } }[];
+        error?: { message?: string; code?: number };
+      };
+
+      if (r.ok) {
+        const reply =
+          data.candidates?.[0]?.content?.parts?.map((p) => p.text ?? "").join("") ?? "";
+        if (reply.trim()) {
+          res.setHeader("Cache-Control", "no-store");
+          return res.status(200).json({ reply, model });
+        }
+        continue;
+      }
+
+      const pesan = data.error?.message ?? "";
+      // 503 / sibuk / 429 -> coba model berikutnya
+      if (
+        r.status === 503 ||
+        r.status === 429 ||
+        /high demand|overloaded|temporarily|unavailable/i.test(pesan)
+      ) {
+        terakhirSibuk = true;
+        continue;
+      }
+      // error lain (mis. key salah) -> langsung berhenti
+      return res.status(r.status === 400 ? 400 : 502).json({
+        error: pesan || "Gagal menghubungi AI.",
+      });
+    } catch {
+      terakhirSibuk = true;
+      continue;
     }
+  }
 
-    const reply =
-      data.candidates?.[0]?.content?.parts?.map((p) => p.text ?? "").join("") ?? "";
-
-    if (!reply.trim()) {
-      return res.status(502).json({ error: "AI tidak memberi jawaban. Coba lagi." });
-    }
-
-    res.setHeader("Cache-Control", "no-store");
-    return res.status(200).json({ reply });
-  } catch (err) {
-    return res.status(500).json({
-      error: err instanceof Error ? err.message : "Terjadi kesalahan.",
+  if (terakhirSibuk) {
+    return res.status(503).json({
+      error: "Server AI sedang ramai. Tunggu sebentar lalu coba lagi.",
     });
   }
+  return res.status(502).json({ error: "Gagal menghubungi AI. Coba lagi." });
 }
