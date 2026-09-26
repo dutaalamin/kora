@@ -140,7 +140,7 @@ export default function App() {
 
   /** Kotak input chat (dipakai di dua tempat: saat kosong & saat ada percakapan). */
   const kotakChat = (
-    <div className="flex items-end gap-2 rounded-3xl border border-[#2a2a2a] bg-[#141414] p-2 pl-4 focus-within:border-[#4a4a4a]">
+    <div className="flex items-end gap-2 rounded-[28px] border border-[#4a4a4a] bg-[#303030] p-2 pl-5 transition focus-within:border-[#6a6a6a]">
       <textarea
         ref={areaTeks}
         value={input}
@@ -148,15 +148,15 @@ export default function App() {
         onKeyDown={onKey}
         rows={1}
         placeholder="물어보세요… tanya apa saja soal bahasa Korea"
-        className="max-h-[180px] min-h-[28px] flex-1 resize-none bg-transparent py-1.5 text-[14px] text-white outline-none placeholder:text-neutral-500"
+        className="max-h-[180px] min-h-[30px] flex-1 resize-none bg-transparent py-2 text-[15px] text-white outline-none placeholder:text-neutral-400"
       />
       <button
         onClick={() => kirim()}
         disabled={loading || !input.trim()}
-        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white text-black transition hover:bg-neutral-200 disabled:opacity-30"
+        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-black transition hover:bg-neutral-200 disabled:opacity-40"
         aria-label="Kirim"
       >
-        {loading ? <Loader2 size={17} className="animate-spin" /> : <Send size={16} />}
+        {loading ? <Loader2 size={18} className="animate-spin" /> : <Send size={17} />}
       </button>
     </div>
   );
@@ -172,10 +172,10 @@ export default function App() {
         {/* Logo + nama */}
         <div className="flex items-center justify-between px-3 pb-1 pt-3">
           <div className="flex items-center gap-2.5 px-1">
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#1a1a1a]">
-              <Languages size={16} className="text-white" />
+            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#1a1a1a]">
+              <Languages size={18} className="text-white" />
             </span>
-            <span className="text-[15px] font-semibold tracking-tight text-white">Kora</span>
+            <span className="text-[20px] font-semibold tracking-tight text-white">Kora</span>
           </div>
           <button
             onClick={() => setSidebar(false)}
