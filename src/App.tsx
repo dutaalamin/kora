@@ -24,7 +24,7 @@ export default function App() {
   const aktif = daftar.find((p) => p.id === aktifId) ?? null;
   const pesan = aktif?.pesan ?? [];
 
-  // Muat dari localStorage
+  // Load from localStorage
   useEffect(() => {
     const list = muatSemua();
     if (list.length) {
@@ -34,7 +34,7 @@ export default function App() {
     if (window.innerWidth >= 768) setSidebar(true);
   }, []);
 
-  // Simpan
+  // Persist
   useEffect(() => {
     if (daftar.length) simpanSemua(daftar);
   }, [daftar]);
@@ -44,7 +44,7 @@ export default function App() {
     bawah.current?.scrollIntoView({ behavior: "smooth" });
   }, [pesan.length, loading]);
 
-  function baru() {
+  function newChat() {
     const p: Percakapan = {
       id: idBaru(),
       judul: "New chat",
@@ -60,8 +60,8 @@ export default function App() {
     setTimeout(() => areaTeks.current?.focus(), 50);
   }
 
-  function hapus(id: string) {
-    if (!confirm("Hapus percakapan ini?")) return;
+  function removeChat(id: string) {
+    if (!confirm("Delete this chat?")) return;
     setDaftar((d) => {
       const sisa = d.filter((p) => p.id !== id);
       if (id === aktifId) setAktifId(sisa[0]?.id ?? "");
@@ -154,7 +154,7 @@ export default function App() {
 
   const urut = [...daftar].sort((a, b) => b.diubah - a.diubah);
 
-  /** Kotak input chat (dipakai di dua tempat: saat kosong & saat ada percakapan). */
+  /** Chat input box (used both on the empty state and inside a conversation). */
   const kotakChat = (
     <div className="flex items-center gap-2 rounded-full bg-[#1f1f1f] py-2 pl-7 pr-2">
       <textarea
@@ -170,7 +170,7 @@ export default function App() {
         onClick={() => kirim()}
         disabled={loading || !input.trim()}
         className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#3a3a3a] text-white transition hover:bg-[#4a4a4a] disabled:opacity-40"
-        aria-label="Kirim"
+        aria-label="Send"
       >
         {loading ? <Loader2 size={19} className="animate-spin" /> : <Send size={18} />}
       </button>
@@ -185,7 +185,7 @@ export default function App() {
           sidebar ? "translate-x-0" : "-translate-x-full md:hidden"
         }`}
       >
-        {/* Logo + nama */}
+        {/* Logo + name */}
         <div className="flex items-center justify-between px-3 pb-1 pt-3">
           <div className="flex items-center gap-2.5 px-1">
             <img src="/logo.svg" alt="Kora" className="h-9 w-9 rounded-lg" />
@@ -194,7 +194,7 @@ export default function App() {
           <button
             onClick={() => setSidebar(false)}
             className="flex h-8 w-8 items-center justify-center rounded-lg text-neutral-400 transition hover:bg-[#1a1a1a] hover:text-white"
-            aria-label="Tutup sidebar"
+            aria-label="Close sidebar"
           >
             <PanelLeft size={17} />
           </button>
@@ -203,7 +203,7 @@ export default function App() {
         {/* New chat */}
         <div className="px-2 pb-2 pt-2">
           <button
-            onClick={baru}
+            onClick={newChat}
             className="flex w-full items-center gap-2.5 rounded-lg bg-[#1a1a1a] px-3 py-2.5 text-[13.5px] font-medium text-white transition hover:bg-[#242424]"
           >
             <SquarePen size={17} />
@@ -211,7 +211,7 @@ export default function App() {
           </button>
         </div>
 
-        {/* Riwayat */}
+        {/* History */}
         <div className="flex-1 overflow-y-auto px-2 pb-3">
           {urut.length === 0 ? (
             <p className="px-3 py-6 text-center text-[12px] text-neutral-500">
@@ -240,7 +240,7 @@ export default function App() {
                     <span className="truncate text-[13.5px] text-neutral-200">{p.judul}</span>
                   </button>
                   <button
-                    onClick={() => hapus(p.id)}
+                    onClick={() => removeChat(p.id)}
                     className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-neutral-500 opacity-0 transition group-hover:opacity-100 hover:bg-[#242424] hover:text-white"
                     aria-label="Delete"
                   >
@@ -263,38 +263,38 @@ export default function App() {
 
       {/* Area utama */}
       <div className="flex min-w-0 flex-1 flex-col bg-black">
-        {/* Tombol buka sidebar (muncul saat sidebar tertutup) */}
+        {/* Open-sidebar buttons (shown when sidebar is closed) */}
         {!sidebar && (
           <>
             <button
               onClick={() => setSidebar(true)}
               className="fixed left-3 top-3 z-20 flex h-9 w-9 items-center justify-center rounded-lg bg-[#1a1a1a] text-neutral-300 transition hover:bg-[#242424] hover:text-white"
-              aria-label="Buka sidebar"
+              aria-label="Open sidebar"
             >
               <PanelLeft size={18} />
             </button>
             <button
-              onClick={baru}
+              onClick={newChat}
               className="fixed right-3 top-3 z-20 flex h-9 w-9 items-center justify-center rounded-lg bg-[#1a1a1a] text-neutral-300 transition hover:bg-[#242424] hover:text-white md:hidden"
-              aria-label="Chat baru"
+              aria-label="New chat"
             >
               <Plus size={18} />
             </button>
           </>
         )}
 
-        {/* Percakapan */}
+        {/* Conversation */}
         <main className="flex-1 overflow-y-auto">
           <div className="mx-auto flex min-h-full max-w-[760px] flex-col px-4 pb-6 pt-16 md:pt-6">
             {pesan.length === 0 ? (
               <div className="flex flex-1 flex-col items-center justify-center pb-[12vh]">
-                <h2 className="kr text-[28px] font-semibold text-white sm:text-[32px]">
-                  무엇을 도와드릴까요?
+                <h2 className="text-[28px] font-semibold text-white sm:text-[32px]">
+                  How can I help you?
                 </h2>
                 <p className="mt-3 text-[14px] text-neutral-400">
-                  How can I help you in Korean?
+                  Ask me anything about Korean
                 </p>
-                {/* Kotak chat tepat di bawah sambutan */}
+                {/* Chat box right under the greeting */}
                 <div className="mt-8 w-full max-w-[700px]">{kotakChat}</div>
               </div>
             ) : (
@@ -317,7 +317,7 @@ export default function App() {
                               className="mt-2 inline-flex items-center gap-1.5 rounded-md px-1.5 py-1 text-[11px] font-medium text-neutral-500 transition hover:bg-[#1a1a1a] hover:text-neutral-200"
                             >
                               {copied === i ? <Check size={12} /> : <Copy size={12} />}
-                              {copied === i ? "Tersalin" : "Salin"}
+                              {copied === i ? "Copied" : "Copy"}
                             </button>
                           </div>
                         )}
@@ -345,7 +345,7 @@ export default function App() {
                         className="inline-flex items-center gap-2 rounded-full border border-[#3a3a3a] bg-[#1f1f1f] px-4 py-2 text-[13px] font-medium text-white transition hover:bg-[#2a2a2a]"
                       >
                         <RotateCw size={14} />
-                        Kirim ulang
+                        Retry
                       </button>
                     </div>
                   )}
@@ -353,7 +353,7 @@ export default function App() {
                   <div ref={bawah} />
                 </div>
 
-                {/* Kotak chat di bawah saat sudah ada percakapan */}
+                {/* Chat box at the bottom when a conversation exists */}
                 <div className="mx-auto w-full max-w-[700px] pt-4">{kotakChat}</div>
               </>
             )}

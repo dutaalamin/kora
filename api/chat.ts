@@ -62,17 +62,17 @@ const tidur = (ms: number) => new Promise((r) => setTimeout(r, ms));
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") {
     res.setHeader("Allow", "POST");
-    return res.status(405).json({ error: "Metode tidak diizinkan." });
+    return res.status(405).json({ error: "Method not allowed." });
   }
 
   const key = process.env.GEMINI_API_KEY;
   if (!key) {
-    return res.status(500).json({ error: "Server belum dikonfigurasi." });
+    return res.status(500).json({ error: "Server is not configured." });
   }
 
   const messages = req.body?.messages as Pesan[] | undefined;
   if (!Array.isArray(messages) || messages.length === 0) {
-    return res.status(400).json({ error: "Tidak ada pesan." });
+    return res.status(400).json({ error: "No messages provided." });
   }
 
   const contents = messages.slice(-20).map((m) => ({
@@ -131,7 +131,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         if (sibuk) continue; // coba model berikutnya
 
         // Error nyata (mis. API key salah) -> hentikan, tapi tetap beri pesan ramah
-        adaErrorLain = pesan || "Terjadi masalah pada AI.";
+        adaErrorLain = pesan || "Something went wrong with the AI.";
         break;
       } catch {
         continue; // jaringan bermasalah -> coba lagi
@@ -144,7 +144,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Semua percobaan gagal — tetap balas dengan pesan ramah.
   return res.status(503).json({
     error: adaErrorLain
-      ? "AI sedang tidak bisa dihubungi. Coba kirim ulang."
-      : "Koneksi ke AI terputus sebentar. Coba kirim ulang.",
+      ? "The AI is temporarily unavailable. Please try again."
+      : "Connection to the AI was interrupted. Please try again.",
   });
 }
