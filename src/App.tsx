@@ -276,7 +276,7 @@ export default function App() {
                   How can I help you in Korean?
                 </p>
                 {/* Kotak chat tepat di bawah sambutan */}
-                <div className="mt-8 w-full max-w-[720px]">{kotakChat}</div>
+                <div className="mt-8 w-full max-w-[620px]">{kotakChat}</div>
               </div>
             ) : (
               <>
@@ -338,7 +338,7 @@ export default function App() {
                 </div>
 
                 {/* Kotak chat di bawah saat sudah ada percakapan */}
-                <div className="pt-4">{kotakChat}</div>
+                <div className="mx-auto w-full max-w-[620px] pt-4">{kotakChat}</div>
               </>
             )}
           </div>
