@@ -14,7 +14,7 @@
 
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 
-/** Dicoba berurutan dari yang tercepat; kalau sibuk/lambat, lanjut berikutnya. */
+/** Tried in order from fastest; if busy/slow, move to the next one. */
 const MODELS = [
   "gemini-3.5-flash-lite",
   "gemini-3.8-flash",
@@ -24,40 +24,40 @@ const MODELS = [
   "gemini-flash-latest",
 ];
 
-const PUTARAN = 2; // berapa kali mencoba seluruh daftar
-const JEDA_MS = 500; // jeda antar putaran
-const TIMEOUT_MS = 12000; // batas waktu tiap percobaan (biar tidak lama menunggu)
+const ROUNDS = 2; // how many times to try the whole list
+const GAP_MS = 500; // pause between rounds
+const TIMEOUT_MS = 12000; // per-attempt timeout (so users don't wait long)
 
-const SYSTEM = `Kamu adalah "Kora" — asisten bahasa Korea untuk orang Indonesia yang bekerja di perusahaan Korea (POSCO).
+const SYSTEM = `You are "Kora" — a Korean language assistant for people working with Korean colleagues or companies (e.g. POSCO).
 
-TUGAS UTAMA:
-1. Menerjemahkan Indonesia <-> Korea dengan akurat.
-2. Menjelaskan arti kata/frasa Korea, termasuk nuansa.
-3. Mengoreksi kalimat Korea yang ditulis pengguna.
-4. Mengajarkan tingkat kesopanan (반말 / 존댓말 / formal).
+MAIN TASKS:
+1. Translate Indonesian/English <-> Korean accurately.
+2. Explain Korean words and phrases, including nuance.
+3. Correct the user's Korean sentences.
+4. Teach politeness levels (반말 / 존댓말 / formal).
 
-ATURAN MENJAWAB:
-- Selalu tulis Hangul, lalu cara baca (romanisasi) dalam tanda kurung.
-- Untuk terjemahan, beri 2 versi bila relevan: (a) santai/반말, (b) sopan/존댓말.
-- Jelaskan istilah yang mungkin asing bagi orang Indonesia.
-- Kalau konteksnya kerja kantor (laporan, rapat, instruksi ke atasan/bawahan), gunakan bahasa yang tepat secara budaya Korea.
-- Kalau istilah teknis (HMI, furnace, PLC, shearing, dll), sebutkan padanan Korea yang umum dipakai di pabrik.
-- Jawab ringkas, rapi, pakai poin-poin bila perlu. Jangan bertele-tele.
-- Kalau pengguna salah tulis Korea, tunjukkan bentuk yang benar dan jelaskan alasannya.
-- Gunakan bahasa Indonesia sebagai bahasa penjelasan.
+ANSWERING RULES:
+- Always write Hangul, followed by romanization in parentheses.
+- For translations, give 2 versions when relevant: (a) casual/반말, (b) polite/존댓말.
+- Explain terms that may be unfamiliar.
+- For workplace context (reports, meetings, instructions to seniors/juniors), use culturally appropriate Korean.
+- For technical terms (HMI, furnace, PLC, shearing, etc.), give the Korean equivalent commonly used in factories.
+- Keep answers concise and well-structured; use bullet points when helpful. Do not ramble.
+- If the user misspells Korean, show the correct form and explain why.
+- Answer in ENGLISH by default. If the user clearly writes in Indonesian, you may reply in Indonesian.
 
-FORMAT CONTOH:
-안녕하세요 (annyeonghaseyo) = Halo (sopan)
-   반말: 안녕 (annyeong) = Hai (ke teman dekat)
+EXAMPLE FORMAT:
+안녕하세요 (annyeonghaseyo) = Hello (polite)
+   casual: 안녕 (annyeong) = Hi (to close friends)
 
-Kalau pengguna menyapa atau bertanya siapa kamu, perkenalkan diri singkat sebagai Kora lalu tawarkan bantuan.`;
+If the user greets you or asks who you are, briefly introduce yourself as Kora and offer help.`;
 
 interface Pesan {
   role: "user" | "model";
   text: string;
 }
 
-const tidur = (ms: number) => new Promise((r) => setTimeout(r, ms));
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") {
@@ -86,14 +86,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     generationConfig: { temperature: 0.6, maxOutputTokens: 1500 },
   });
 
-  let adaErrorLain: string | null = null;
+  let otherError: string | null = null;
 
-  for (let putaran = 0; putaran < PUTARAN; putaran++) {
+  for (let round = 0; round < ROUNDS; round++) {
     for (const model of MODELS) {
       const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(key)}`;
       try {
         const ctrl = new AbortController();
-        const jam = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
+        const timer = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
         let r: Response;
         try {
           r = await fetch(url, {
@@ -103,7 +103,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             signal: ctrl.signal,
           });
         } finally {
-          clearTimeout(jam);
+          clearTimeout(timer);
         }
 
         const data = (await r.json()) as {
@@ -118,32 +118,32 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             res.setHeader("Cache-Control", "no-store");
             return res.status(200).json({ reply, model });
           }
-          continue; // kosong -> coba berikutnya
+          continue; // empty -> try next
         }
 
         const pesan = data.error?.message ?? "";
-        const sibuk =
+        const busy =
           r.status === 503 ||
           r.status === 429 ||
           r.status === 500 ||
           /high demand|overloaded|temporarily|unavailable|try again|busy/i.test(pesan);
 
-        if (sibuk) continue; // coba model berikutnya
+        if (busy) continue; // try next model
 
-        // Error nyata (mis. API key salah) -> hentikan, tapi tetap beri pesan ramah
-        adaErrorLain = pesan || "Something went wrong with the AI.";
+        // Real error (e.g. bad API key) -> stop, but still return a friendly message
+        otherError = pesan || "Something went wrong with the AI.";
         break;
       } catch {
-        continue; // jaringan bermasalah -> coba lagi
+        continue; // network issue -> retry
       }
     }
-    if (adaErrorLain) break;
-    await tidur(JEDA_MS);
+    if (otherError) break;
+    await sleep(GAP_MS);
   }
 
-  // Semua percobaan gagal — tetap balas dengan pesan ramah.
+  // All attempts failed — still reply with a friendly message.
   return res.status(503).json({
-    error: adaErrorLain
+    error: otherError
       ? "The AI is temporarily unavailable. Please try again."
       : "Connection to the AI was interrupted. Please try again.",
   });
