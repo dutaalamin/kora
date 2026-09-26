@@ -9,7 +9,7 @@
 
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 
-const MODEL = "gemini-2.0-flash";
+const MODEL = "gemini-flash-latest";
 const ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`;
 
 const SYSTEM = `Kamu adalah "Asisten Bahasa Korea" untuk orang Indonesia yang bekerja di perusahaan Korea (POSCO).
