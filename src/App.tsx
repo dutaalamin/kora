@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import {
-  Send, Loader2, Copy, Check, AlertCircle, Languages,
+  Send, Loader2, Copy, Check, AlertCircle,
   Plus, PanelLeft, Trash2, MessageSquare, SquarePen,
 } from "lucide-react";
 import {
@@ -172,9 +172,7 @@ export default function App() {
         {/* Logo + nama */}
         <div className="flex items-center justify-between px-3 pb-1 pt-3">
           <div className="flex items-center gap-2.5 px-1">
-            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#1a1a1a]">
-              <Languages size={18} className="text-white" />
-            </span>
+            <img src="/logo.svg" alt="Kora" className="h-9 w-9 rounded-lg" />
             <span className="text-[20px] font-semibold tracking-tight text-white">Kora</span>
           </div>
           <button
