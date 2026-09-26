@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import {
   Send, Loader2, Copy, Check, RotateCw,
-  Plus, PanelLeft, Trash2, SquarePen,
+  PanelLeft, Trash2, SquarePen,
 } from "lucide-react";
 import {
   kirimChat, idBaru, judulDari, muatSemua, simpanSemua,
@@ -263,24 +263,15 @@ export default function App() {
 
       {/* Area utama */}
       <div className="flex min-w-0 flex-1 flex-col bg-black">
-        {/* Open-sidebar buttons (shown when sidebar is closed) */}
+        {/* Open-sidebar button (shown when sidebar is closed) */}
         {!sidebar && (
-          <>
-            <button
-              onClick={() => setSidebar(true)}
-              className="fixed left-3 top-3 z-20 flex h-9 w-9 items-center justify-center rounded-lg bg-[#1a1a1a] text-neutral-300 transition hover:bg-[#242424] hover:text-white"
-              aria-label="Open sidebar"
-            >
-              <PanelLeft size={18} />
-            </button>
-            <button
-              onClick={newChat}
-              className="fixed right-3 top-3 z-20 flex h-9 w-9 items-center justify-center rounded-lg bg-[#1a1a1a] text-neutral-300 transition hover:bg-[#242424] hover:text-white md:hidden"
-              aria-label="New chat"
-            >
-              <Plus size={18} />
-            </button>
-          </>
+          <button
+            onClick={() => setSidebar(true)}
+            className="fixed left-3 top-3 z-20 flex h-9 w-9 items-center justify-center rounded-lg bg-[#1a1a1a] text-neutral-300 transition hover:bg-[#242424] hover:text-white"
+            aria-label="Open sidebar"
+          >
+            <PanelLeft size={18} />
+          </button>
         )}
 
         {/* Conversation */}
