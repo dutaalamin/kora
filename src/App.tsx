@@ -140,14 +140,14 @@ export default function App() {
 
   /** Kotak input chat (dipakai di dua tempat: saat kosong & saat ada percakapan). */
   const kotakChat = (
-    <div className="flex items-center gap-2 rounded-full border border-[#3a3a3a] bg-[#1f1f1f] py-1.5 pl-5 pr-1.5 transition focus-within:border-[#5a5a5a]">
+    <div className="flex items-center gap-2 rounded-full bg-[#1f1f1f] py-1.5 pl-5 pr-1.5">
       <textarea
         ref={areaTeks}
         value={input}
         onChange={(e) => setInput(e.target.value)}
         onKeyDown={onKey}
         rows={1}
-        placeholder="물어보세요… tanya apa saja soal bahasa Korea"
+        placeholder="Ask Kora"
         className="max-h-[180px] min-h-[26px] flex-1 resize-none self-center bg-transparent py-1.5 text-[15px] text-white outline-none placeholder:text-neutral-300"
       />
       <button
