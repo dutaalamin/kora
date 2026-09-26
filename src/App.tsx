@@ -3,6 +3,8 @@ import {
   Send, Loader2, Trash2, Copy, Check, Sparkles, AlertCircle, Languages,
 } from "lucide-react";
 import { kirimChat, STORAGE_KEY, SAPAAN, type ChatMessage } from "./chat";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 export default function App() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -148,13 +150,19 @@ export default function App() {
               >
                 <div className={`max-w-[85%] ${m.role === "user" ? "order-1" : ""}`}>
                   <div
-                    className={`rounded-2xl px-4 py-3 text-[14px] leading-relaxed whitespace-pre-wrap ${
+                    className={`rounded-2xl px-4 py-3 text-[14px] leading-relaxed ${
                       m.role === "user"
-                        ? "bg-slate-900 text-white"
+                        ? "whitespace-pre-wrap bg-slate-900 text-white"
                         : "kr border border-slate-200 bg-white text-slate-800"
                     }`}
                   >
-                    {m.text}
+                    {m.role === "user" ? (
+                      m.text
+                    ) : (
+                      <div className="markdown">
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>{m.text}</ReactMarkdown>
+                      </div>
+                    )}
                   </div>
                   {m.role === "model" && (
                     <button
