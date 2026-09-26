@@ -27,8 +27,8 @@ body {
 /* Titik-titik bergoyang saat AI sedang menjawab (ala Gemini/ChatGPT) */
 .kora-dot {
   display: inline-block;
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
   border-radius: 9999px;
   background: #8a8a8a;
   animation: kora-bounce 1.2s infinite ease-in-out;
@@ -42,7 +42,7 @@ body {
     opacity: 0.5;
   }
   35% {
-    transform: translateY(-5px);
+    transform: translateY(-4px);
     opacity: 1;
   }
 }

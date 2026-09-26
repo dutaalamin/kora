@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import {
-  Send, Loader2, Copy, Check, AlertCircle,
+  Send, Loader2, Copy, Check, AlertCircle, RotateCw,
   Plus, PanelLeft, Trash2, SquarePen,
 } from "lucide-react";
 import {
@@ -320,20 +320,20 @@ export default function App() {
                   )}
 
                   {error && (
-                    <div
-                      role="alert"
-                      className="flex items-center gap-3 rounded-xl border border-[#2a2a2a] bg-[#141414] px-4 py-3 text-[13px] text-neutral-100"
-                    >
-                      <AlertCircle size={16} className="shrink-0" />
-                      <span className="flex-1">{error}</span>
+                    <div className="flex flex-col items-center gap-3 py-4 text-center">
+                      <div className="flex items-center gap-2.5 text-[13.5px] text-neutral-300">
+                        <AlertCircle size={16} className="shrink-0 text-neutral-400" />
+                        <span>{error}</span>
+                      </div>
                       <button
                         onClick={() => {
                           const terakhir = pesan.filter((p) => p.role === "user").pop();
                           if (terakhir) kirim(terakhir.text);
                         }}
-                        className="shrink-0 rounded-lg border border-[#3a3a3a] px-3 py-1.5 text-[12px] font-medium text-white transition hover:bg-[#242424]"
+                        className="inline-flex items-center gap-2 rounded-full border border-[#3a3a3a] bg-[#1f1f1f] px-4 py-2 text-[13px] font-medium text-white transition hover:bg-[#2a2a2a]"
                       >
-                        Coba lagi
+                        <RotateCw size={14} />
+                        Kirim ulang
                       </button>
                     </div>
                   )}
