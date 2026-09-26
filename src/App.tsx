@@ -41,6 +41,12 @@ export default function App() {
       setAktifId(list[0].id);
     }
     if (window.innerWidth >= 768) setSidebar(true);
+    // Fokus otomatis ke kotak chat saat halaman dibuka (desktop saja,
+    // agar di HP keyboard tidak langsung terbuka)
+    if (window.innerWidth >= 768) {
+      const jam = setTimeout(() => areaTeks.current?.focus(), 120);
+      return () => clearTimeout(jam);
+    }
   }, []);
 
   // Persist
@@ -52,6 +58,11 @@ export default function App() {
   useEffect(() => {
     bawah.current?.scrollIntoView({ behavior: "smooth" });
   }, [pesan.length, loading]);
+
+  // Fokus kotak chat saat ganti percakapan
+  useEffect(() => {
+    if (aktifId) setTimeout(() => areaTeks.current?.focus(), 50);
+  }, [aktifId]);
 
   function newChat() {
     const p: Percakapan = {
