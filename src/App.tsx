@@ -222,9 +222,7 @@ export default function App() {
           </button>
           <div className="flex items-center gap-2">
             <Languages size={17} className="text-slate-300" />
-            <h1 className="text-[14px] font-medium text-slate-200">
-              Asisten Bahasa Korea
-            </h1>
+            <h1 className="text-[14px] font-medium text-slate-200">Sejong</h1>
           </div>
         </header>
 
@@ -236,12 +234,15 @@ export default function App() {
                 <span className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#1a1a1a] text-slate-200">
                   <Sparkles size={24} />
                 </span>
-                <h2 className="text-xl font-semibold text-slate-100">
-                  Mau tanya apa tentang bahasa Korea?
+                <h2 className="kr text-[22px] font-semibold text-slate-100">
+                  무엇을 도와드릴까요?
                 </h2>
-                <p className="mx-auto mt-2 max-w-[440px] text-[13px] text-slate-400">
-                  Terjemah, arti kata, koreksi kalimat, atau tingkat kesopanan — tanya saja pakai
-                  bahasa Indonesia.
+                <p className="kr mt-1.5 text-[13px] text-slate-400">
+                  무엇이든 물어보세요 — 한국어에 대해
+                </p>
+                <p className="mx-auto mt-3 max-w-[440px] text-[13px] text-slate-500">
+                  Tanya apa saja soal bahasa Korea — terjemah, arti kata, koreksi kalimat, atau
+                  tingkat kesopanan. Boleh pakai bahasa Indonesia.
                 </p>
 
                 <div className="mx-auto mt-8 grid max-w-[620px] gap-2 sm:grid-cols-2">
@@ -327,7 +328,7 @@ export default function App() {
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={onKey}
                 rows={1}
-                placeholder="Tanya apa saja tentang bahasa Korea…"
+                placeholder="물어보세요… tanya apa saja soal bahasa Korea"
                 className="max-h-[180px] min-h-[28px] flex-1 resize-none bg-transparent py-1.5 text-[14px] text-slate-100 outline-none placeholder:text-slate-500"
               />
               <button
@@ -339,9 +340,6 @@ export default function App() {
                 {loading ? <Loader2 size={17} className="animate-spin" /> : <Send size={16} />}
               </button>
             </div>
-            <p className="mt-2.5 text-center text-[11px] text-slate-500">
-              Jawaban AI bisa keliru — untuk hal penting, cek ulang ke orang yang paham.
-            </p>
           </div>
         </footer>
       </div>
