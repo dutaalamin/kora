@@ -18,11 +18,20 @@ export default function App() {
   const [error, setError] = useState("");
   const [copied, setCopied] = useState<number | null>(null);
   const [sidebar, setSidebar] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const bawah = useRef<HTMLDivElement>(null);
   const areaTeks = useRef<HTMLTextAreaElement>(null);
 
   const aktif = daftar.find((p) => p.id === aktifId) ?? null;
   const pesan = aktif?.pesan ?? [];
+
+  // Deteksi layar kecil (mobile) untuk menaruh chat bar di bawah
+  useEffect(() => {
+    const cek = () => setIsMobile(window.innerWidth < 768);
+    cek();
+    window.addEventListener("resize", cek);
+    return () => window.removeEventListener("resize", cek);
+  }, []);
 
   // Load from localStorage
   useEffect(() => {
@@ -278,16 +287,25 @@ export default function App() {
         <main className="flex-1 overflow-y-auto">
           <div className="mx-auto flex min-h-full max-w-[760px] flex-col px-4 pb-6 pt-16 md:pt-6">
             {pesan.length === 0 ? (
-              <div className="flex flex-1 flex-col items-center justify-center pb-[12vh]">
-                <h2 className="text-[28px] font-semibold text-white sm:text-[32px]">
-                  How can I help you?
-                </h2>
-                <p className="mt-3 text-[15px] text-neutral-400">
-                  Ask me anything about Korean
-                </p>
-                {/* Chat box right under the greeting */}
-                <div className="mt-8 w-full">{kotakChat}</div>
-              </div>
+              <>
+                {/* Greeting */}
+                <div
+                  className={`flex flex-1 flex-col items-center justify-center ${
+                    isMobile ? "" : "pb-[12vh]"
+                  }`}
+                >
+                  <h2 className="text-[28px] font-semibold text-white sm:text-[32px]">
+                    How can I help you?
+                  </h2>
+                  <p className="mt-3 text-[15px] text-neutral-400">
+                    Ask me anything about Korean
+                  </p>
+                  {/* Desktop: chat box right under the greeting */}
+                  {!isMobile && <div className="mt-8 w-full">{kotakChat}</div>}
+                </div>
+                {/* Mobile: chat bar at the bottom */}
+                {isMobile && <div className="w-full pb-2">{kotakChat}</div>}
+              </>
             ) : (
               <>
                 <div className="flex-1 space-y-6">
