@@ -14,8 +14,8 @@ body,
 
 body {
   margin: 0;
-  background: #f8fafc;
-  color: #0f172a;
+  background: #212121;
+  color: #ececec;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -40,7 +40,7 @@ body {
 .markdown h4 {
   margin: 0.9rem 0 0.4rem;
   font-weight: 600;
-  color: #0f172a;
+  color: #f1f5f9;
 }
 .markdown h1 {
   font-size: 1.05rem;
@@ -70,20 +70,20 @@ body {
 }
 .markdown strong {
   font-weight: 600;
-  color: #0f172a;
+  color: #f1f5f9;
 }
 .markdown em {
   font-style: italic;
-  color: #475569;
+  color: #94a3b8;
 }
 .markdown hr {
   margin: 0.9rem 0;
   border: 0;
-  border-top: 1px solid #e2e8f0;
+  border-top: 1px solid #3a3a3a;
 }
 .markdown code {
   border-radius: 0.35rem;
-  background: #f1f5f9;
+  background: #2f2f2f;
   padding: 0.1rem 0.35rem;
   font-size: 0.85em;
 }
@@ -91,7 +91,7 @@ body {
   margin: 0.5rem 0;
   overflow-x: auto;
   border-radius: 0.6rem;
-  background: #f1f5f9;
+  background: #2f2f2f;
   padding: 0.75rem;
 }
 .markdown pre code {
@@ -106,21 +106,21 @@ body {
 }
 .markdown th,
 .markdown td {
-  border: 1px solid #e2e8f0;
+  border: 1px solid #3a3a3a;
   padding: 0.35rem 0.6rem;
   text-align: left;
 }
 .markdown th {
-  background: #f8fafc;
+  background: #262626;
   font-weight: 600;
 }
 .markdown blockquote {
   margin: 0.5rem 0;
-  border-left: 3px solid #cbd5e1;
+  border-left: 3px solid #4a4a4a;
   padding-left: 0.75rem;
-  color: #475569;
+  color: #94a3b8;
 }
 .markdown a {
-  color: #0f172a;
+  color: #f1f5f9;
   text-decoration: underline;
 }

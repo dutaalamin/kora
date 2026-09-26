@@ -1,61 +1,124 @@
 import { useEffect, useRef, useState } from "react";
 import {
-  Send, Loader2, Trash2, Copy, Check, Sparkles, AlertCircle, Languages,
+  Send, Loader2, Copy, Check, Sparkles, AlertCircle, Languages,
+  Plus, PanelLeft, Trash2, MessageSquare, SquarePen,
 } from "lucide-react";
-import { kirimChat, STORAGE_KEY, SAPAAN, type ChatMessage } from "./chat";
+import {
+  kirimChat, SAPAAN, idBaru, judulDari, muatSemua, simpanSemua,
+  type ChatMessage, type Percakapan,
+} from "./chat";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
 export default function App() {
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [daftar, setDaftar] = useState<Percakapan[]>([]);
+  const [aktifId, setAktifId] = useState<string>("");
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [copied, setCopied] = useState<number | null>(null);
+  const [sidebar, setSidebar] = useState(false);
   const bawah = useRef<HTMLDivElement>(null);
   const areaTeks = useRef<HTMLTextAreaElement>(null);
 
-  // Muat riwayat
+  const aktif = daftar.find((p) => p.id === aktifId) ?? null;
+  const pesan = aktif?.pesan ?? [];
+
+  // Muat dari localStorage
   useEffect(() => {
-    try {
-      const s = localStorage.getItem(STORAGE_KEY);
-      if (s) setMessages(JSON.parse(s) as ChatMessage[]);
-    } catch {
-      /* abaikan */
+    const list = muatSemua();
+    if (list.length) {
+      setDaftar(list);
+      setAktifId(list[0].id);
     }
+    // layar lebar: sidebar terbuka
+    if (window.innerWidth >= 768) setSidebar(true);
   }, []);
 
-  // Simpan riwayat
+  // Simpan
   useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(messages.slice(-50)));
-    } catch {
-      /* abaikan */
-    }
-  }, [messages]);
+    if (daftar.length) simpanSemua(daftar);
+  }, [daftar]);
 
   // Auto-scroll
   useEffect(() => {
     bawah.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, loading]);
+  }, [pesan.length, loading]);
+
+  function baru() {
+    const p: Percakapan = {
+      id: idBaru(),
+      judul: "Percakapan baru",
+      pesan: [],
+      dibuat: Date.now(),
+      diubah: Date.now(),
+    };
+    setDaftar((d) => [p, ...d]);
+    setAktifId(p.id);
+    setError("");
+    setInput("");
+    if (window.innerWidth < 768) setSidebar(false);
+    setTimeout(() => areaTeks.current?.focus(), 50);
+  }
+
+  function hapus(id: string) {
+    if (!confirm("Hapus percakapan ini?")) return;
+    setDaftar((d) => {
+      const sisa = d.filter((p) => p.id !== id);
+      if (id === aktifId) setAktifId(sisa[0]?.id ?? "");
+      return sisa;
+    });
+  }
 
   async function kirim(teks?: string) {
     const isi = (teks ?? input).trim();
     if (!isi || loading) return;
 
-    const baru: ChatMessage[] = [...messages, { role: "user", text: isi }];
-    setMessages(baru);
+    // Buat percakapan bila belum ada
+    let id = aktifId;
+    if (!id || !aktif) {
+      const p: Percakapan = {
+        id: idBaru(),
+        judul: judulDari(isi),
+        pesan: [],
+        dibuat: Date.now(),
+        diubah: Date.now(),
+      };
+      id = p.id;
+      setDaftar((d) => [p, ...d]);
+      setAktifId(p.id);
+    }
+
+    const pesanLama = aktif?.pesan ?? [];
+    const baru: ChatMessage[] = [...pesanLama, { role: "user", text: isi }];
     setInput("");
     setLoading(true);
     setError("");
 
+    setDaftar((d) =>
+      d.map((p) =>
+        p.id === id
+          ? {
+              ...p,
+              judul: p.pesan.length === 0 ? judulDari(isi) : p.judul,
+              pesan: baru,
+              diubah: Date.now(),
+            }
+          : p,
+      ),
+    );
+
     try {
       const balas = await kirimChat(baru);
-      setMessages([...baru, { role: "model", text: balas }]);
+      setDaftar((d) =>
+        d.map((p) =>
+          p.id === id
+            ? { ...p, pesan: [...baru, { role: "model", text: balas }], diubah: Date.now() }
+            : p,
+        ),
+      );
     } catch (err) {
       setError(err instanceof Error ? err.message : "Terjadi kesalahan.");
-      // tetap tampilkan pesan user, hapus yang gagal
-      setMessages(baru);
     } finally {
       setLoading(false);
       areaTeks.current?.focus();
@@ -75,159 +138,213 @@ export default function App() {
     setTimeout(() => setCopied(null), 1500);
   }
 
-  function hapusSemua() {
-    if (!confirm("Hapus semua riwayat percakapan?")) return;
-    setMessages([]);
-    setError("");
-    try {
-      localStorage.removeItem(STORAGE_KEY);
-    } catch {
-      /* abaikan */
-    }
-  }
+  const urut = [...daftar].sort((a, b) => b.diubah - a.diubah);
 
   return (
-    <div className="flex h-full flex-col bg-slate-50">
-      {/* Header */}
-      <header className="border-b border-slate-200 bg-white">
-        <div className="mx-auto flex max-w-[860px] items-center justify-between gap-4 px-4 py-3.5 sm:px-6">
-          <div className="flex items-center gap-3">
-            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-slate-700 to-slate-900 text-white">
-              <Languages size={19} />
-            </span>
-            <div>
-              <h1 className="text-base font-semibold text-slate-900">Asisten Bahasa Korea</h1>
-              <p className="text-xs text-slate-500">Kerja &amp; sehari-hari — Indonesia ↔ 한국어</p>
-            </div>
-          </div>
-          {messages.length > 0 && (
-            <button
-              onClick={hapusSemua}
-              className="inline-flex h-9 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 text-[13px] font-medium text-slate-600 transition hover:bg-slate-50"
-            >
-              <Trash2 size={15} />
-              <span className="hidden sm:inline">Hapus</span>
-            </button>
-          )}
+    <div className="flex h-full bg-[#212121] text-slate-100">
+      {/* Sidebar */}
+      <aside
+        className={`fixed inset-y-0 left-0 z-40 flex w-[260px] shrink-0 flex-col bg-[#171717] transition-transform duration-200 md:static md:translate-x-0 ${
+          sidebar ? "translate-x-0" : "-translate-x-full md:hidden"
+        }`}
+      >
+        <div className="flex items-center justify-between px-3 py-3">
+          <button
+            onClick={baru}
+            className="flex flex-1 items-center gap-2 rounded-lg px-2.5 py-2 text-[13px] font-medium text-slate-200 transition hover:bg-[#2a2a2a]"
+          >
+            <SquarePen size={17} />
+            Chat baru
+          </button>
+          <button
+            onClick={() => setSidebar(false)}
+            className="ml-1 hidden h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-[#2a2a2a] hover:text-slate-100 md:flex"
+            aria-label="Tutup sidebar"
+          >
+            <PanelLeft size={17} />
+          </button>
         </div>
-      </header>
 
-      {/* Percakapan */}
-      <main className="flex-1 overflow-y-auto">
-        <div className="mx-auto max-w-[860px] px-4 py-6 sm:px-6">
-          {messages.length === 0 && (
-            <div className="py-10 text-center">
-              <span className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-900 text-white">
-                <Sparkles size={24} />
-              </span>
-              <h2 className="text-lg font-semibold text-slate-900">
-                Mau tanya apa tentang bahasa Korea?
-              </h2>
-              <p className="mx-auto mt-1.5 max-w-[420px] text-sm text-slate-500">
-                Terjemah, arti kata, koreksi kalimat, atau tingkat kesopanan — tanya saja pakai
-                bahasa Indonesia.
-              </p>
-
-              <div className="mx-auto mt-7 grid max-w-[640px] gap-2 sm:grid-cols-2">
-                {SAPAAN.map((s) => (
-                  <button
-                    key={s}
-                    onClick={() => kirim(s)}
-                    className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-left text-[13px] text-slate-600 transition hover:border-slate-300 hover:bg-slate-50"
-                  >
-                    {s}
-                  </button>
-                ))}
-              </div>
-            </div>
+        <div className="flex-1 overflow-y-auto px-2 pb-3">
+          {urut.length === 0 && (
+            <p className="px-3 py-6 text-center text-[12px] text-slate-500">
+              Belum ada riwayat
+            </p>
           )}
-
-          <div className="space-y-5">
-            {messages.map((m, i) => (
-              <div
-                key={i}
-                className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}
+          {urut.map((p) => (
+            <div
+              key={p.id}
+              className={`group flex items-center gap-1 rounded-lg pr-1 transition ${
+                p.id === aktifId ? "bg-[#2a2a2a]" : "hover:bg-[#212121]"
+              }`}
+            >
+              <button
+                onClick={() => {
+                  setAktifId(p.id);
+                  setError("");
+                  if (window.innerWidth < 768) setSidebar(false);
+                }}
+                className="flex min-w-0 flex-1 items-center gap-2.5 px-2.5 py-2.5 text-left"
               >
-                <div className={`max-w-[85%] ${m.role === "user" ? "order-1" : ""}`}>
-                  <div
-                    className={`rounded-2xl px-4 py-3 text-[14px] leading-relaxed ${
-                      m.role === "user"
-                        ? "whitespace-pre-wrap bg-slate-900 text-white"
-                        : "kr border border-slate-200 bg-white text-slate-800"
-                    }`}
-                  >
+                <MessageSquare size={15} className="shrink-0 text-slate-500" />
+                <span className="truncate text-[13px] text-slate-300">{p.judul}</span>
+              </button>
+              <button
+                onClick={() => hapus(p.id)}
+                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-slate-500 opacity-0 transition group-hover:opacity-100 hover:bg-[#333] hover:text-slate-200"
+                aria-label="Hapus"
+              >
+                <Trash2 size={14} />
+              </button>
+            </div>
+          ))}
+        </div>
+      </aside>
+
+      {/* Lapisan gelap saat sidebar terbuka di HP */}
+      {sidebar && (
+        <div
+          onClick={() => setSidebar(false)}
+          className="fixed inset-0 z-30 bg-black/50 md:hidden"
+        />
+      )}
+
+      {/* Area utama */}
+      <div className="flex min-w-0 flex-1 flex-col">
+        {/* Header */}
+        <header className="flex items-center gap-2 border-b border-[#2f2f2f] px-3 py-2.5">
+          <button
+            onClick={() => setSidebar((v) => !v)}
+            className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 transition hover:bg-[#2a2a2a] hover:text-slate-100"
+            aria-label="Buka sidebar"
+          >
+            <PanelLeft size={18} />
+          </button>
+          <div className="flex items-center gap-2">
+            <Languages size={17} className="text-slate-300" />
+            <h1 className="text-[14px] font-medium text-slate-200">
+              Asisten Bahasa Korea
+            </h1>
+          </div>
+        </header>
+
+        {/* Percakapan */}
+        <main className="flex-1 overflow-y-auto">
+          <div className="mx-auto max-w-[760px] px-4 py-6">
+            {pesan.length === 0 && (
+              <div className="py-12 text-center">
+                <span className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#2a2a2a] text-slate-200">
+                  <Sparkles size={24} />
+                </span>
+                <h2 className="text-xl font-semibold text-slate-100">
+                  Mau tanya apa tentang bahasa Korea?
+                </h2>
+                <p className="mx-auto mt-2 max-w-[440px] text-[13px] text-slate-400">
+                  Terjemah, arti kata, koreksi kalimat, atau tingkat kesopanan — tanya saja pakai
+                  bahasa Indonesia.
+                </p>
+
+                <div className="mx-auto mt-8 grid max-w-[620px] gap-2 sm:grid-cols-2">
+                  {SAPAAN.map((s) => (
+                    <button
+                      key={s}
+                      onClick={() => kirim(s)}
+                      className="rounded-xl border border-[#3a3a3a] bg-[#2a2a2a] px-4 py-3 text-left text-[12.5px] text-slate-300 transition hover:bg-[#333]"
+                    >
+                      {s}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="space-y-6">
+              {pesan.map((m, i) => (
+                <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
+                  <div className="max-w-[88%]">
                     {m.role === "user" ? (
-                      m.text
+                      <div className="whitespace-pre-wrap rounded-3xl bg-[#2f2f2f] px-4 py-2.5 text-[14px] leading-relaxed text-slate-100">
+                        {m.text}
+                      </div>
                     ) : (
-                      <div className="markdown">
-                        <ReactMarkdown remarkPlugins={[remarkGfm]}>{m.text}</ReactMarkdown>
+                      <div className="kr text-[14px] leading-relaxed text-slate-200">
+                        <div className="markdown">
+                          <ReactMarkdown remarkPlugins={[remarkGfm]}>{m.text}</ReactMarkdown>
+                        </div>
+                        <button
+                          onClick={() => salin(i, m.text)}
+                          className="mt-2 inline-flex items-center gap-1.5 rounded-md px-1.5 py-1 text-[11px] font-medium text-slate-500 transition hover:bg-[#2a2a2a] hover:text-slate-300"
+                        >
+                          {copied === i ? <Check size={12} /> : <Copy size={12} />}
+                          {copied === i ? "Tersalin" : "Salin"}
+                        </button>
                       </div>
                     )}
                   </div>
-                  {m.role === "model" && (
-                    <button
-                      onClick={() => salin(i, m.text)}
-                      className="mt-1.5 inline-flex items-center gap-1 text-[11px] font-medium text-slate-400 transition hover:text-slate-700"
-                    >
-                      {copied === i ? <Check size={12} /> : <Copy size={12} />}
-                      {copied === i ? "Tersalin" : "Salin"}
-                    </button>
-                  )}
                 </div>
-              </div>
-            ))}
+              ))}
 
-            {loading && (
-              <div className="flex justify-start">
-                <div className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-[13px] text-slate-500">
-                  <Loader2 size={15} className="animate-spin" />
-                  Sedang menyusun jawaban…
+              {loading && (
+                <div className="flex justify-start">
+                  <div className="inline-flex items-center gap-2 text-[13px] text-slate-400">
+                    <Loader2 size={15} className="animate-spin" />
+                    Sedang menyusun jawaban…
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {error && (
-              <div
-                role="alert"
-                className="flex items-center gap-2 rounded-xl border border-slate-400 bg-slate-200 px-3.5 py-2.5 text-[13px] text-slate-900"
+              {error && (
+                <div
+                  role="alert"
+                  className="flex items-center gap-2 rounded-xl border border-[#4a4a4a] bg-[#2a2a2a] px-3.5 py-2.5 text-[13px] text-slate-200"
+                >
+                  <AlertCircle size={15} />
+                  {error}
+                </div>
+              )}
+
+              <div ref={bawah} />
+            </div>
+          </div>
+        </main>
+
+        {/* Input */}
+        <footer className="px-4 pb-5 pt-2">
+          <div className="mx-auto max-w-[760px]">
+            <div className="flex items-end gap-2 rounded-3xl border border-[#3a3a3a] bg-[#2a2a2a] p-2 pl-4 focus-within:border-[#555]">
+              <textarea
+                ref={areaTeks}
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={onKey}
+                rows={1}
+                placeholder="Tanya apa saja tentang bahasa Korea…"
+                className="max-h-[180px] min-h-[28px] flex-1 resize-none bg-transparent py-1.5 text-[14px] text-slate-100 outline-none placeholder:text-slate-500"
+              />
+              <button
+                onClick={() => kirim()}
+                disabled={loading || !input.trim()}
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white text-[#212121] transition hover:bg-slate-200 disabled:opacity-30"
+                aria-label="Kirim"
               >
-                <AlertCircle size={15} />
-                {error}
-              </div>
-            )}
-
-            <div ref={bawah} />
+                {loading ? <Loader2 size={17} className="animate-spin" /> : <Send size={16} />}
+              </button>
+            </div>
+            <p className="mt-2.5 text-center text-[11px] text-slate-500">
+              Jawaban AI bisa keliru — untuk hal penting, cek ulang ke orang yang paham.
+            </p>
           </div>
-        </div>
-      </main>
+        </footer>
+      </div>
 
-      {/* Input */}
-      <footer className="border-t border-slate-200 bg-white">
-        <div className="mx-auto max-w-[860px] px-4 py-3.5 sm:px-6">
-          <div className="flex items-end gap-2">
-            <textarea
-              ref={areaTeks}
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={onKey}
-              rows={1}
-              placeholder="Tulis pertanyaan… (Enter untuk kirim, Shift+Enter baris baru)"
-              className="max-h-[160px] min-h-[44px] flex-1 resize-none rounded-xl border border-slate-300 bg-white px-4 py-3 text-[14px] text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-slate-500 focus:ring-2 focus:ring-slate-200"
-            />
-            <button
-              onClick={() => kirim()}
-              disabled={loading || !input.trim()}
-              className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-slate-900 text-white transition hover:bg-slate-800 disabled:opacity-40"
-              aria-label="Kirim"
-            >
-              {loading ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
-            </button>
-          </div>
-          <p className="mt-2 text-center text-[11px] text-slate-400">
-            Jawaban AI bisa keliru — untuk hal penting, cek ulang ke orang yang paham.
-          </p>
-        </div>
-      </footer>
+      {/* Tombol chat baru (HP) */}
+      <button
+        onClick={baru}
+        className="fixed bottom-32 right-4 z-20 flex h-11 w-11 items-center justify-center rounded-full bg-[#2f2f2f] text-slate-200 shadow-lg transition hover:bg-[#3a3a3a] md:hidden"
+        aria-label="Chat baru"
+      >
+        <Plus size={19} />
+      </button>
     </div>
   );
 }
