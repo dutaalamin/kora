@@ -5,18 +5,28 @@
  * Balasan: { reply: string }
  *
  * API key disimpan di env GEMINI_API_KEY (tidak pernah sampai ke browser).
- * Model dicoba berurutan (fallback) supaya tidak gagal saat satu model sibuk.
+ *
+ * ANTI-GAGAL:
+ *  - Banyak model dicoba bergantian.
+ *  - Diulang beberapa putaran dengan jeda, agar saat satu model sibuk
+ *    tetap ada peluang berhasil tanpa pengguna perlu kirim ulang.
  */
 
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 
-/** Dicoba dari atas ke bawah sampai ada yang berhasil. */
+/** Dicoba berurutan; kalau sibuk, lanjut ke berikutnya. */
 const MODELS = [
   "gemini-3.8-flash",
   "gemini-3.7-flash",
   "gemini-3.6-flash",
+  "gemini-3.5-flash",
+  "gemini-3.8-flash-lite",
+  "gemini-3.5-flash-lite",
   "gemini-flash-latest",
 ];
+
+const PUTARAN = 2; // berapa kali mencoba seluruh daftar
+const JEDA_MS = 700; // jeda antar putaran
 
 const SYSTEM = `Kamu adalah "Kora" — asisten bahasa Korea untuk orang Indonesia yang bekerja di perusahaan Korea (POSCO).
 
@@ -47,6 +57,8 @@ interface Pesan {
   text: string;
 }
 
+const tidur = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") {
     res.setHeader("Allow", "POST");
@@ -55,7 +67,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const key = process.env.GEMINI_API_KEY;
   if (!key) {
-    return res.status(500).json({ error: "GEMINI_API_KEY belum di-set. Hubungi admin." });
+    return res.status(500).json({ error: "Server belum dikonfigurasi." });
   }
 
   const messages = req.body?.messages as Pesan[] | undefined;
@@ -74,57 +86,57 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     generationConfig: { temperature: 0.6, maxOutputTokens: 1500 },
   });
 
-  let terakhirSibuk = false;
+  let adaErrorLain: string | null = null;
 
-  // Coba tiap model sampai berhasil
-  for (const model of MODELS) {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(key)}`;
-    try {
-      const r = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body,
-      });
+  for (let putaran = 0; putaran < PUTARAN; putaran++) {
+    for (const model of MODELS) {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(key)}`;
+      try {
+        const r = await fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body,
+        });
 
-      const data = (await r.json()) as {
-        candidates?: { content?: { parts?: { text?: string }[] } }[];
-        error?: { message?: string; code?: number };
-      };
+        const data = (await r.json()) as {
+          candidates?: { content?: { parts?: { text?: string }[] } }[];
+          error?: { message?: string; code?: number };
+        };
 
-      if (r.ok) {
-        const reply =
-          data.candidates?.[0]?.content?.parts?.map((p) => p.text ?? "").join("") ?? "";
-        if (reply.trim()) {
-          res.setHeader("Cache-Control", "no-store");
-          return res.status(200).json({ reply, model });
+        if (r.ok) {
+          const reply =
+            data.candidates?.[0]?.content?.parts?.map((p) => p.text ?? "").join("") ?? "";
+          if (reply.trim()) {
+            res.setHeader("Cache-Control", "no-store");
+            return res.status(200).json({ reply, model });
+          }
+          continue; // kosong -> coba berikutnya
         }
-        continue;
-      }
 
-      const pesan = data.error?.message ?? "";
-      // 503 / sibuk / 429 -> coba model berikutnya
-      if (
-        r.status === 503 ||
-        r.status === 429 ||
-        /high demand|overloaded|temporarily|unavailable/i.test(pesan)
-      ) {
-        terakhirSibuk = true;
-        continue;
+        const pesan = data.error?.message ?? "";
+        const sibuk =
+          r.status === 503 ||
+          r.status === 429 ||
+          r.status === 500 ||
+          /high demand|overloaded|temporarily|unavailable|try again|busy/i.test(pesan);
+
+        if (sibuk) continue; // coba model berikutnya
+
+        // Error nyata (mis. API key salah) -> hentikan, tapi tetap beri pesan ramah
+        adaErrorLain = pesan || "Terjadi masalah pada AI.";
+        break;
+      } catch {
+        continue; // jaringan bermasalah -> coba lagi
       }
-      // error lain (mis. key salah) -> langsung berhenti
-      return res.status(r.status === 400 ? 400 : 502).json({
-        error: pesan || "Gagal menghubungi AI.",
-      });
-    } catch {
-      terakhirSibuk = true;
-      continue;
     }
+    if (adaErrorLain) break;
+    await tidur(JEDA_MS);
   }
 
-  if (terakhirSibuk) {
-    return res.status(503).json({
-      error: "Server AI sedang ramai. Tunggu sebentar lalu coba lagi.",
-    });
-  }
-  return res.status(502).json({ error: "Gagal menghubungi AI. Coba lagi." });
+  // Semua percobaan gagal — tetap balas dengan pesan ramah.
+  return res.status(503).json({
+    error: adaErrorLain
+      ? "AI sedang tidak bisa dihubungi. Coba kirim ulang."
+      : "Koneksi ke AI terputus sebentar. Coba kirim ulang.",
+  });
 }

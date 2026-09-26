@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import {
-  Send, Loader2, Copy, Check, AlertCircle, RotateCw,
+  Send, Loader2, Copy, Check, RotateCw,
   Plus, PanelLeft, Trash2, SquarePen,
 } from "lucide-react";
 import {
@@ -107,16 +107,32 @@ export default function App() {
     );
 
     try {
-      const balas = await kirimChat(baru);
-      setDaftar((d) =>
-        d.map((p) =>
-          p.id === id
-            ? { ...p, pesan: [...baru, { role: "model", text: balas }], diubah: Date.now() }
-            : p,
-        ),
-      );
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Terjadi kesalahan.");
+      // Coba beberapa kali otomatis sebelum menyerah
+      let balas = "";
+      let sukses = false;
+      for (let coba = 0; coba < 3; coba++) {
+        try {
+          balas = await kirimChat(baru);
+          sukses = true;
+          break;
+        } catch {
+          if (coba < 2) await new Promise((r) => setTimeout(r, 800 * (coba + 1)));
+        }
+      }
+
+      if (sukses) {
+        setDaftar((d) =>
+          d.map((p) =>
+            p.id === id
+              ? { ...p, pesan: [...baru, { role: "model", text: balas }], diubah: Date.now() }
+              : p,
+          ),
+        );
+      } else {
+        setError("gagal");
+      }
+    } catch {
+      setError("gagal");
     } finally {
       setLoading(false);
       areaTeks.current?.focus();
@@ -320,11 +336,7 @@ export default function App() {
                   )}
 
                   {error && (
-                    <div className="flex flex-col items-center gap-3 py-4 text-center">
-                      <div className="flex items-center gap-2.5 text-[13.5px] text-neutral-300">
-                        <AlertCircle size={16} className="shrink-0 text-neutral-400" />
-                        <span>{error}</span>
-                      </div>
+                    <div className="flex justify-start">
                       <button
                         onClick={() => {
                           const terakhir = pesan.filter((p) => p.role === "user").pop();
