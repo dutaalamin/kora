@@ -238,7 +238,7 @@ export default function App() {
       {sidebar && (
         <div
           onClick={() => setSidebar(false)}
-          className="fixed inset-0 z-30 bg-black/60 md:hidden"
+          className="fixed inset-0 z-30 bg-black/80 backdrop-blur-sm md:hidden"
         />
       )}
 
@@ -246,18 +246,27 @@ export default function App() {
       <div className="flex min-w-0 flex-1 flex-col bg-black">
         {/* Tombol buka sidebar (muncul saat sidebar tertutup) */}
         {!sidebar && (
-          <button
-            onClick={() => setSidebar(true)}
-            className="fixed left-3 top-3 z-20 flex h-9 w-9 items-center justify-center rounded-lg bg-[#1a1a1a] text-neutral-300 transition hover:bg-[#242424] hover:text-white"
-            aria-label="Buka sidebar"
-          >
-            <PanelLeft size={18} />
-          </button>
+          <>
+            <button
+              onClick={() => setSidebar(true)}
+              className="fixed left-3 top-3 z-20 flex h-9 w-9 items-center justify-center rounded-lg bg-[#1a1a1a] text-neutral-300 transition hover:bg-[#242424] hover:text-white"
+              aria-label="Buka sidebar"
+            >
+              <PanelLeft size={18} />
+            </button>
+            <button
+              onClick={baru}
+              className="fixed right-3 top-3 z-20 flex h-9 w-9 items-center justify-center rounded-lg bg-[#1a1a1a] text-neutral-300 transition hover:bg-[#242424] hover:text-white md:hidden"
+              aria-label="Chat baru"
+            >
+              <Plus size={18} />
+            </button>
+          </>
         )}
 
         {/* Percakapan */}
         <main className="flex-1 overflow-y-auto">
-          <div className="mx-auto flex min-h-full max-w-[760px] flex-col px-4 py-6">
+          <div className="mx-auto flex min-h-full max-w-[760px] flex-col px-4 pb-6 pt-16 md:pt-6">
             {pesan.length === 0 ? (
               <div className="flex flex-1 flex-col items-center justify-center pb-[12vh]">
                 <h2 className="kr text-[28px] font-semibold text-white sm:text-[32px]">
@@ -336,14 +345,6 @@ export default function App() {
         </main>
       </div>
 
-      {/* Tombol chat baru (HP) */}
-      <button
-        onClick={baru}
-        className="fixed bottom-32 right-4 z-20 flex h-11 w-11 items-center justify-center rounded-full bg-[#1f1f1f] text-white shadow-lg transition hover:bg-[#2a2a2a] md:hidden"
-        aria-label="Chat baru"
-      >
-        <Plus size={19} />
-      </button>
     </div>
   );
 }
