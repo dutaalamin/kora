@@ -295,7 +295,7 @@ export default function App() {
                   Ask me anything about Korean
                 </p>
                 {/* Chat box right under the greeting */}
-                <div className="mt-8 w-full max-w-[700px]">{kotakChat}</div>
+                <div className="mt-8 w-full">{kotakChat}</div>
               </div>
             ) : (
               <>
@@ -354,7 +354,7 @@ export default function App() {
                 </div>
 
                 {/* Chat box at the bottom when a conversation exists */}
-                <div className="mx-auto w-full max-w-[700px] pt-4">{kotakChat}</div>
+                <div className="w-full pt-4">{kotakChat}</div>
               </>
             )}
           </div>
