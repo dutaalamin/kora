@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import {
   Send, Loader2, Copy, Check, RotateCw,
-  PanelLeft, Trash2, SquarePen,
+  PanelLeft, Trash2, SquarePen, GraduationCap,
 } from "lucide-react";
 import {
   kirimChat, idBaru, judulDari, muatSemua, simpanSemua,
   type ChatMessage, type Percakapan,
 } from "./chat";
+import Quiz from "./components/Quiz";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
@@ -19,6 +20,7 @@ export default function App() {
   const [copied, setCopied] = useState<number | null>(null);
   const [sidebar, setSidebar] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [quizTerbuka, setQuizTerbuka] = useState(false);
   const bawah = useRef<HTMLDivElement>(null);
   const areaTeks = useRef<HTMLTextAreaElement>(null);
 
@@ -231,6 +233,20 @@ export default function App() {
           </button>
         </div>
 
+        {/* Quiz */}
+        <div className="px-2 pb-2">
+          <button
+            onClick={() => {
+              setQuizTerbuka(true);
+              if (window.innerWidth < 768) setSidebar(false);
+            }}
+            className="flex w-full items-center gap-2.5 rounded-lg border border-emerald-900/40 bg-emerald-950/20 px-3 py-2.5 text-[14px] font-medium text-emerald-300 transition hover:bg-emerald-950/40"
+          >
+            <GraduationCap size={17} />
+            Latihan Korea
+          </button>
+        </div>
+
         {/* History */}
         <div className="flex-1 overflow-y-auto px-2 pb-3">
           {urut.length === 0 ? (
@@ -280,6 +296,9 @@ export default function App() {
           className="fixed inset-0 z-30 bg-black/80 backdrop-blur-sm md:hidden"
         />
       )}
+
+      {/* Halaman Quiz */}
+      {quizTerbuka && <Quiz onTutup={() => setQuizTerbuka(false)} />}
 
       {/* Area utama */}
       <div className="flex min-w-0 flex-1 flex-col bg-black">
