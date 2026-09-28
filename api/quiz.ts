@@ -29,14 +29,23 @@ const PROMPT_SOAL = `You generate Korean vocabulary quiz questions for an Indone
 Generate exactly {JUMLAH} multiple-choice questions about: {TOPIK}
 Difficulty level: {LEVEL}
 
-Rules:
-- Each question asks the meaning of a Korean word/phrase, OR asks for the Korean word given the Indonesian meaning.
-- Use vocabulary appropriate for the level.
-- Since the learner works at a factory, prefer workplace and daily-life words when the topic allows.
+CRITICAL RULES (do not break these):
+- NEVER reveal the answer inside the question. The question must NOT contain the Indonesian meaning that is the correct option.
+  BAD : "Apa bahasa Korea 'kopi' (커피)?" -> option "Kopi"  (answer is given away)
+  GOOD: "Apa arti dari 커피 (keopi)?"      -> options include "Kopi"
+- Do NOT put the romanization of a Korean word next to its own Indonesian meaning.
+- Each question must be DIFFERENT. Do not repeat the same word or the same question twice.
+- Cover {JUMLAH} different words. No duplicates.
+
+FORMAT:
+- Mix two question types across the set:
+  (a) Korean -> Indonesian: ask the meaning of a Korean word.
+  (b) Indonesian -> Korean: ask the Korean word for an Indonesian meaning.
 - 4 options per question. Exactly ONE correct answer.
-- Options must be plausible but clearly wrong for the incorrect ones.
-- Write Hangul with romanization for Korean words, e.g. 안녕하세요 (annyeonghaseyo).
-- Explanation must be short (max 2 sentences), in Indonesian, and helpful.
+- The 3 wrong options must be plausible (same category), not random.
+- If the question asks for a Korean word, all 4 options must be Korean words (Hangul with romanization).
+- If the question asks for a meaning, all 4 options must be Indonesian meanings.
+- Explanation: short (max 2 sentences), in Indonesian.
 
 Return ONLY valid JSON, no markdown fences, no extra text:
 {
@@ -53,6 +62,42 @@ Return ONLY valid JSON, no markdown fences, no extra text:
 "jawaban" is the index (0-3) of the correct option.`;
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+/** Buang soal yang cacat (jawaban bocor di pertanyaan, duplikat, dll). */
+function soalValid(s: any): boolean {
+  if (!s || typeof s.pertanyaan !== "string") return false;
+  if (!Array.isArray(s.pilihan) || s.pilihan.length !== 4) return false;
+  if (typeof s.jawaban !== "number" || s.jawaban < 0 || s.jawaban > 3) return false;
+
+  const tanya = s.pertanyaan.toLowerCase();
+  const jawabBenar = String(s.pilihan[s.jawaban] ?? "").toLowerCase().trim();
+  if (!jawabBenar) return false;
+
+  // 1. Jawaban benar tidak boleh tertulis di pertanyaan
+  //    (buang romanization dalam tanda kurung dulu biar tidak salah deteksi)
+  const tanyaTanpaKurung = tanya.replace(/\([^)]*\)/g, " ");
+  if (jawabBenar.length >= 3 && tanyaTanpaKurung.includes(jawabBenar)) return false;
+
+  // 2. Pilihan tidak boleh duplikat
+  const unik = new Set(s.pilihan.map((p: any) => String(p).toLowerCase().trim()));
+  if (unik.size !== 4) return false;
+
+  return true;
+}
+
+/** Bersihkan & filter daftar soal. */
+function bersihkanSoal(arr: any[]): any[] {
+  const hasil: any[] = [];
+  const sudahAda = new Set<string>();
+  for (const s of arr) {
+    if (!soalValid(s)) continue;
+    const kunci = String(s.pertanyaan).toLowerCase().trim();
+    if (sudahAda.has(kunci)) continue;
+    sudahAda.add(kunci);
+    hasil.push(s);
+  }
+  return hasil;
+}
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") {
@@ -82,6 +127,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       responseMimeType: "application/json",
     },
   });
+
+  const kumpulan: any[] = []; // soal yang sudah lolos validasi (kalau kurang, kumpulkan)
 
   for (let round = 0; round < 2; round++) {
     for (const model of MODELS) {
@@ -115,10 +162,30 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           const bersih = teks.replace(/```json|```/g, "").trim();
 
           try {
-            const parsed = JSON.parse(bersih) as { soal?: unknown[] };
+            const parsed = JSON.parse(bersih) as { soal?: any[] };
             if (Array.isArray(parsed.soal) && parsed.soal.length > 0) {
-              res.setHeader("Cache-Control", "no-store");
-              return res.status(200).json({ soal: parsed.soal, model });
+              // Buang soal cacat & duplikat
+              const bersihSoal = bersihkanSoal(parsed.soal);
+
+              // Kalau masih cukup, langsung pakai
+              if (bersihSoal.length >= Math.min(jumlah, 3)) {
+                res.setHeader("Cache-Control", "no-store");
+                return res.status(200).json({
+                  soal: bersihSoal.slice(0, jumlah),
+                  model,
+                });
+              }
+
+              // Kalau kurang, simpan dulu & coba minta lagi
+              kumpulan.push(...bersihSoal);
+              if (kumpulan.length >= Math.min(jumlah, 3)) {
+                res.setHeader("Cache-Control", "no-store");
+                return res.status(200).json({
+                  soal: bersihkanSoal(kumpulan).slice(0, jumlah),
+                  model,
+                });
+              }
+              continue;
             }
           } catch {
             continue; // JSON rusak, coba model berikutnya
@@ -139,6 +206,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
     }
     await sleep(500);
+  }
+
+  // Kalau semua percobaan habis tapi ada soal terkumpul, pakai itu
+  if (kumpulan.length >= 3) {
+    res.setHeader("Cache-Control", "no-store");
+    return res.status(200).json({ soal: bersihkanSoal(kumpulan).slice(0, jumlah) });
   }
 
   return res.status(503).json({
