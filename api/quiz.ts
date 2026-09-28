@@ -12,11 +12,16 @@ import type { VercelRequest, VercelResponse } from "@vercel/node";
 // ============================================================
 
 const MODELS = [
-  "gemini-2.5-flash",
-  "gemini-2.5-flash-lite",
+  "gemini-3.5-flash-lite",
+  "gemini-3.8-flash",
+  "gemini-3.6-flash",
+  "gemini-3.7-flash",
+  "gemini-3.8-flash-lite",
   "gemini-flash-latest",
 ];
 
+const ROUNDS = 2;
+const GAP_MS = 500;
 const TIMEOUT_MS = 15000;
 
 const PROMPT_SOAL = `You generate Korean vocabulary quiz questions for an Indonesian learner who works at a steel company (POSCO) in Indonesia.
