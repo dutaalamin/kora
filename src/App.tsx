@@ -98,6 +98,7 @@ export default function App() {
     setError("");
     setInput("");
     setGaleriTerbuka(false);
+    setQuizTerbuka(false);
     if (window.innerWidth < 768) setSidebar(false);
     setTimeout(() => areaTeks.current?.focus(), 50);
   }
@@ -115,6 +116,7 @@ export default function App() {
     const isi = (teks ?? input).trim();
     if ((!isi && lampiran.length === 0) || loading) return;
     setGaleriTerbuka(false);
+    setQuizTerbuka(false);
 
     const kiriman: Lampiran[] = lampiran;
 
@@ -480,6 +482,7 @@ export default function App() {
           <button
             onClick={() => {
               setGaleriTerbuka(true);
+              setQuizTerbuka(false);
               if (window.innerWidth < 768) setSidebar(false);
             }}
             className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-[14px] font-medium text-white transition hover:bg-[#1a1a1a]"
@@ -491,6 +494,7 @@ export default function App() {
           <button
             onClick={() => {
               setQuizTerbuka(true);
+              setGaleriTerbuka(false);
               if (window.innerWidth < 768) setSidebar(false);
             }}
             className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-[14px] font-medium text-white transition hover:bg-[#1a1a1a]"
@@ -524,6 +528,7 @@ export default function App() {
                         setAktifId(p.id);
                         setError("");
                         setGaleriTerbuka(false);
+                        setQuizTerbuka(false);
                         if (window.innerWidth < 768) setSidebar(false);
                       }}
                       className="flex min-w-0 flex-1 items-center px-3 py-2.5 text-left"
