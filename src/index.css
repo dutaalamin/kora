@@ -318,3 +318,122 @@ body {
   background: #ffffff;
   color: #3c3c3c;
 }
+
+/* ============================================================
+   TEMA GELAP — dipakai saat kuis tampil berdampingan dengan sidebar
+   ============================================================ */
+/* Dasar (mode terang) */
+.dl-card {
+  background: #ffffff;
+  border-color: #e5e5e5;
+  color: #3c3c3c;
+}
+.dl-muted {
+  color: #afafaf;
+}
+.dl-teks {
+  color: #3c3c3c;
+}
+.dl-track {
+  background: #e5e5e5;
+}
+
+/* Tombol pilihan aktif */
+.dl-card-aktif {
+  border-color: #1cb0f6;
+  background: #ddf4ff;
+  color: #1899d6;
+}
+
+.dl-dark {
+  background: #0a0a0a;
+  color: #e5e5e5;
+}
+
+.dl-dark .dl-card-aktif {
+  border-color: #1cb0f6 !important;
+  background: #0b2942 !important;
+  color: #6cc9ff !important;
+}
+
+/* Kartu & panel */
+.dl-dark .dl-card {
+  background: #141414 !important;
+  border-color: #262626 !important;
+  color: #f5f5f5 !important;
+}
+.dl-dark .dl-muted {
+  color: #8a8a8a !important;
+}
+.dl-dark .dl-teks {
+  color: #f5f5f5 !important;
+}
+.dl-dark .dl-garis {
+  border-color: #262626 !important;
+}
+.dl-dark .dl-track {
+  background: #262626 !important;
+}
+
+/* Pilihan jawaban */
+.dl-dark .dl-pilih {
+  background: #141414;
+  border-color: #2a2a2a;
+  color: #ededed;
+}
+.dl-dark .dl-pilih:hover:not(:disabled) {
+  background: #1c1c1c;
+}
+.dl-dark .dl-pilih-aktif {
+  background: #0b2942;
+  border-color: #1cb0f6;
+  color: #6cc9ff;
+}
+.dl-dark .dl-pilih-benar {
+  background: #14351a;
+  border-color: #58cc02;
+  color: #7ede2a;
+}
+.dl-dark .dl-pilih-salah {
+  background: #3a1414;
+  border-color: #ff4b4b;
+  color: #ff7a7a;
+}
+.dl-dark .dl-pilih-mati {
+  opacity: 0.35;
+}
+
+/* Tombol putih jadi gelap */
+.dl-dark .dl-white {
+  background: #1a1a1a;
+  color: #ededed;
+  border-color: #2a2a2a;
+  box-shadow: 0 4px 0 #0f0f0f;
+}
+.dl-dark .dl-white:hover:not(:disabled) {
+  background: #242424;
+}
+.dl-dark .dl-gray {
+  background: #1f1f1f;
+  color: #6a6a6a;
+}
+
+/* Banner feedback */
+.dl-dark .dl-banner-benar {
+  background: #14351a !important;
+  border-color: #1f5c22 !important;
+}
+.dl-dark .dl-banner-salah {
+  background: #3a1414 !important;
+  border-color: #6b2020 !important;
+}
+.dl-dark .dl-banner-netral {
+  background: #0f0f0f !important;
+  border-color: #262626 !important;
+}
+
+/* Kartu statistik terang */
+.dl-dark .dl-stat {
+  background: #141414 !important;
+  border-color: #262626 !important;
+}

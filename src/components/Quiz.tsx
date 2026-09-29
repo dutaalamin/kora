@@ -64,7 +64,15 @@ function Confetti() {
   );
 }
 
-export default function Quiz({ onTutup }: { onTutup: () => void }) {
+export default function Quiz({
+  onTutup,
+  denganSidebar = false,
+}: {
+  onTutup: () => void;
+  denganSidebar?: boolean;
+}) {
+  const mode = denganSidebar ? "dl-dark" : "dl-bg";
+  const pos = denganSidebar ? "relative h-full" : "fixed inset-0 z-50";
   const [layar, setLayar] = useState<Layar>("menu");
   const [progres, setProgres] = useState<Progres>(() => muatProgres());
   const [topik, setTopik] = useState(TOPIK[0].id);
@@ -191,15 +199,15 @@ export default function Quiz({ onTutup }: { onTutup: () => void }) {
   // ================= LAYAR MENU =================
   if (layar === "menu") {
     return (
-      <div className="dl-bg fixed inset-0 z-50 flex flex-col overflow-y-auto">
+      <div className={`${mode} ${pos} flex flex-col overflow-y-auto`}>
         <div className="mx-auto w-full max-w-[560px] px-5 py-7">
           <div className="flex items-center justify-between">
-            <h1 className="text-[24px] font-extrabold text-[#3c3c3c]">
+            <h1 className="dl-teks text-[24px] font-extrabold">
               Korean Games 🇰🇷
             </h1>
             <button
               onClick={onTutup}
-              className="flex h-10 w-10 items-center justify-center rounded-xl text-[#afafaf] transition hover:bg-[#f0f0f0]"
+              className="dl-muted flex h-10 w-10 items-center justify-center rounded-xl transition hover:bg-[#1f1f1f]"
             >
               <X size={20} />
             </button>
@@ -207,44 +215,44 @@ export default function Quiz({ onTutup }: { onTutup: () => void }) {
 
           {/* Statistik */}
           <div className="mt-6 grid grid-cols-3 gap-3">
-            <div className="rounded-2xl border-2 border-[#e5e5e5] bg-white p-4 text-center">
+            <div className="dl-card dl-stat rounded-2xl border-2 p-4 text-center">
               <Flame size={22} className="mx-auto mb-1 text-orange-500" />
-              <p className="text-[23px] font-extrabold text-[#3c3c3c]">
+              <p className="dl-teks text-[23px] font-extrabold">
                 {progres.streak}
               </p>
-              <p className="text-[11px] font-bold uppercase text-[#afafaf]">
+              <p className="dl-muted text-[11px] font-bold uppercase">
                 Streak
               </p>
             </div>
-            <div className="rounded-2xl border-2 border-[#e5e5e5] bg-white p-4 text-center">
+            <div className="dl-card dl-stat rounded-2xl border-2 p-4 text-center">
               <Star size={22} className="mx-auto mb-1 text-yellow-500" />
-              <p className="text-[23px] font-extrabold text-[#3c3c3c]">
+              <p className="dl-teks text-[23px] font-extrabold">
                 {progres.xp}
               </p>
-              <p className="text-[11px] font-bold uppercase text-[#afafaf]">
+              <p className="dl-muted text-[11px] font-bold uppercase">
                 Total XP
               </p>
             </div>
-            <div className="rounded-2xl border-2 border-[#e5e5e5] bg-white p-4 text-center">
+            <div className="dl-card dl-stat rounded-2xl border-2 p-4 text-center">
               <Trophy size={22} className="mx-auto mb-1 text-sky-500" />
-              <p className="text-[23px] font-extrabold text-[#3c3c3c]">
+              <p className="dl-teks text-[23px] font-extrabold">
                 {lv.level}
               </p>
-              <p className="text-[11px] font-bold uppercase text-[#afafaf]">
+              <p className="dl-muted text-[11px] font-bold uppercase">
                 Level
               </p>
             </div>
           </div>
 
           {/* Progres level */}
-          <div className="mt-4 rounded-2xl border-2 border-[#e5e5e5] bg-white p-4">
+          <div className="dl-card dl-stat mt-4 rounded-2xl border-2 p-4">
             <div className="flex items-center justify-between text-[13px]">
-              <span className="font-bold text-[#3c3c3c]">Level {lv.level}</span>
-              <span className="font-semibold text-[#afafaf]">
+              <span className="dl-teks font-bold">Level {lv.level}</span>
+              <span className="dl-muted font-semibold">
                 {lv.xpLevelIni} / {lv.xpLevelDepan} XP
               </span>
             </div>
-            <div className="mt-2 h-3 overflow-hidden rounded-full bg-[#e5e5e5]">
+            <div className="dl-track mt-2 h-3 overflow-hidden rounded-full">
               <div
                 className="h-full rounded-full bg-gradient-to-r from-[#58cc02] to-[#89e219] transition-all"
                 style={{ width: `${persenLevel}%` }}
@@ -259,7 +267,7 @@ export default function Quiz({ onTutup }: { onTutup: () => void }) {
           )}
 
           {/* Topik */}
-          <p className="mt-7 mb-2 text-[13px] font-extrabold uppercase tracking-wide text-[#afafaf]">
+          <p className="dl-muted mt-7 mb-2 text-[13px] font-extrabold uppercase tracking-wide">
             Pilih Topik
           </p>
           <div className="grid grid-cols-2 gap-2.5">
@@ -269,10 +277,10 @@ export default function Quiz({ onTutup }: { onTutup: () => void }) {
                 <button
                   key={t.id}
                   onClick={() => setTopik(t.id)}
-                  className={`flex items-center gap-2 rounded-2xl border-2 px-3.5 py-3.5 text-left text-[14px] font-bold transition ${
+                  className={`dl-card flex items-center gap-2 rounded-2xl border-2 px-3.5 py-3.5 text-left text-[14px] font-bold transition ${
                     aktif
-                      ? "border-[#1cb0f6] bg-[#ddf4ff] text-[#1899d6]"
-                      : "border-[#e5e5e5] bg-white text-[#3c3c3c] hover:bg-[#f7f7f7]"
+                      ? "dl-card-aktif"
+                      : "hover:!bg-[#1c1c1c]"
                   }`}
                 >
                   <span className="text-[19px]">{t.emoji}</span>
@@ -283,7 +291,7 @@ export default function Quiz({ onTutup }: { onTutup: () => void }) {
           </div>
 
           {/* Level */}
-          <p className="mt-6 mb-2 text-[13px] font-extrabold uppercase tracking-wide text-[#afafaf]">
+          <p className="dl-muted mt-6 mb-2 text-[13px] font-extrabold uppercase tracking-wide">
             Tingkat
           </p>
           <div className="flex gap-2">
@@ -293,10 +301,10 @@ export default function Quiz({ onTutup }: { onTutup: () => void }) {
                 <button
                   key={l.id}
                   onClick={() => setLevel(l.id)}
-                  className={`flex-1 rounded-2xl border-2 py-3 text-[13.5px] font-bold transition ${
+                  className={`dl-card flex-1 rounded-2xl border-2 py-3 text-[13.5px] font-bold transition ${
                     aktif
-                      ? "border-[#1cb0f6] bg-[#ddf4ff] text-[#1899d6]"
-                      : "border-[#e5e5e5] bg-white text-[#3c3c3c] hover:bg-[#f7f7f7]"
+                      ? "dl-card-aktif"
+                      : "hover:!bg-[#1c1c1c]"
                   }`}
                 >
                   {l.label}
@@ -306,7 +314,7 @@ export default function Quiz({ onTutup }: { onTutup: () => void }) {
           </div>
 
           {error && (
-            <p className="mt-5 rounded-2xl border-2 border-red-200 bg-red-50 px-4 py-3 text-[13.5px] font-semibold text-red-600">
+            <p className="mt-5 rounded-2xl border-2 border-red-800 bg-red-950/40 px-4 py-3 text-[13.5px] font-semibold text-red-400">
               {error}
             </p>
           )}
@@ -338,7 +346,7 @@ export default function Quiz({ onTutup }: { onTutup: () => void }) {
     const sempurna = benar === soal.length && !nyawaHabis;
     const persen = soal.length ? Math.round((benar / soal.length) * 100) : 0;
     return (
-      <div className="dl-bg fixed inset-0 z-50 flex flex-col items-center justify-center overflow-y-auto px-5">
+      <div className={`${mode} ${pos} flex flex-col items-center justify-center overflow-y-auto px-5`}>
         {sempurna && <Confetti />}
         <div className="w-full max-w-[440px] py-10 text-center">
           <div
@@ -346,7 +354,7 @@ export default function Quiz({ onTutup }: { onTutup: () => void }) {
           >
             {nyawaHabis ? "💔" : sempurna ? "🏆" : persen >= 60 ? "🎉" : "💪"}
           </div>
-          <h2 className="mt-3 text-[28px] font-extrabold text-[#3c3c3c]">
+          <h2 className="dl-teks mt-3 text-[28px] font-extrabold">
             {nyawaHabis
               ? "Nyawa Habis!"
               : sempurna
@@ -355,32 +363,32 @@ export default function Quiz({ onTutup }: { onTutup: () => void }) {
               ? "Bagus Sekali!"
               : "Terus Semangat!"}
           </h2>
-          <p className="mt-2 text-[15px] font-semibold text-[#afafaf]">
+          <p className="dl-muted mt-2 text-[15px] font-semibold">
             Kamu benar {benar} dari {soal.length} soal
           </p>
 
           <div className="mt-7 grid grid-cols-3 gap-3">
-            <div className="rounded-2xl border-2 border-[#e5e5e5] bg-white p-4">
+            <div className="dl-card dl-stat rounded-2xl border-2 p-4">
               <p className="text-[23px] font-extrabold text-yellow-500">
                 +{xpDidapat}
               </p>
-              <p className="text-[11px] font-bold uppercase text-[#afafaf]">
+              <p className="dl-muted text-[11px] font-bold uppercase">
                 XP
               </p>
             </div>
-            <div className="rounded-2xl border-2 border-[#e5e5e5] bg-white p-4">
-              <p className="text-[23px] font-extrabold text-[#3c3c3c]">
+            <div className="dl-card dl-stat rounded-2xl border-2 p-4">
+              <p className="dl-teks text-[23px] font-extrabold">
                 {persen}%
               </p>
-              <p className="text-[11px] font-bold uppercase text-[#afafaf]">
+              <p className="dl-muted text-[11px] font-bold uppercase">
                 Akurasi
               </p>
             </div>
-            <div className="rounded-2xl border-2 border-[#e5e5e5] bg-white p-4">
+            <div className="dl-card dl-stat rounded-2xl border-2 p-4">
               <p className="text-[23px] font-extrabold text-orange-500">
                 {progres.streak}
               </p>
-              <p className="text-[11px] font-bold uppercase text-[#afafaf]">
+              <p className="dl-muted text-[11px] font-bold uppercase">
                 Streak
               </p>
             </div>
@@ -415,18 +423,18 @@ export default function Quiz({ onTutup }: { onTutup: () => void }) {
   const tepat = pilih === soalKini.jawaban;
 
   return (
-    <div className="dl-bg fixed inset-0 z-50 flex flex-col">
+    <div className={`${mode} ${pos} flex flex-col`}>
       {/* Header */}
-      <div className="border-b-2 border-[#e5e5e5] px-5 py-4">
+      <div className="dl-garis border-b-2 px-5 py-4">
         <div className="mx-auto flex max-w-[560px] items-center gap-3">
           <button
             onClick={() => setLayar("menu")}
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-[#afafaf] transition hover:bg-[#f0f0f0]"
+            className="dl-muted flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition hover:bg-[#1f1f1f]"
           >
             <X size={20} />
           </button>
 
-          <div className="h-4 flex-1 overflow-hidden rounded-full bg-[#e5e5e5]">
+          <div className="dl-track h-4 flex-1 overflow-hidden rounded-full">
             <div
               className="h-full rounded-full bg-[#58cc02] transition-all duration-300"
               style={{ width: `${persenSelesai}%` }}
@@ -449,7 +457,7 @@ export default function Quiz({ onTutup }: { onTutup: () => void }) {
                 className={
                   i < nyawa
                     ? "fill-[#ff4b4b] text-[#ff4b4b]"
-                    : "fill-[#e5e5e5] text-[#e5e5e5]"
+                    : "dl-track fill-current text-[#e5e5e5]"
                 }
               />
             ))}
@@ -460,11 +468,11 @@ export default function Quiz({ onTutup }: { onTutup: () => void }) {
       {/* Soal */}
       <div className="flex-1 overflow-y-auto px-5 py-8">
         <div className="mx-auto max-w-[560px]">
-          <p className="text-[13px] font-extrabold uppercase tracking-wide text-[#afafaf]">
+          <p className="dl-muted text-[13px] font-extrabold uppercase tracking-wide">
             Soal {nomor + 1} dari {soal.length}
           </p>
           <h2
-            className={`mt-2 text-[21px] font-extrabold leading-snug text-[#3c3c3c] ${
+            className={`dl-teks mt-2 text-[21px] font-extrabold leading-snug ${
               getar ? "dl-shake" : ""
             }`}
           >
@@ -509,12 +517,12 @@ export default function Quiz({ onTutup }: { onTutup: () => void }) {
 
       {/* Banner feedback + tombol */}
       <div
-        className={`border-t-2 px-5 py-5 ${
+        className={`dl-garis border-t-2 px-5 py-5 ${
           dinilai
             ? tepat
-              ? "border-[#d7ffb8] bg-[#d7ffb8]"
-              : "border-[#ffdfe0] bg-[#ffdfe0]"
-            : "border-[#e5e5e5] bg-white"
+              ? "dl-banner-benar border-[#d7ffb8] bg-[#d7ffb8]"
+              : "dl-banner-salah border-[#ffdfe0] bg-[#ffdfe0]"
+            : "dl-banner-netral border-[#e5e5e5] bg-white"
         }`}
       >
         <div className="mx-auto flex max-w-[560px] items-center gap-4">
@@ -539,7 +547,7 @@ export default function Quiz({ onTutup }: { onTutup: () => void }) {
                 >
                   {tepat ? "Benar!" : "Belum Tepat"}
                 </p>
-                <p className="text-[13px] font-semibold leading-snug text-[#3c3c3c]">
+                <p className="dl-teks text-[13px] font-semibold leading-snug">
                   {soalKini.penjelasan}
                 </p>
               </div>

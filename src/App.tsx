@@ -374,9 +374,6 @@ export default function App() {
         />
       )}
 
-      {/* Halaman Quiz */}
-      {quizTerbuka && <Quiz onTutup={() => setQuizTerbuka(false)} />}
-
       {/* Area utama */}
       <div className="flex min-w-0 flex-1 flex-col bg-black">
         {/* Open-sidebar button (shown when sidebar is closed) */}
@@ -390,8 +387,12 @@ export default function App() {
           </button>
         )}
 
-        {/* Conversation / Images */}
-        {galeriTerbuka ? (
+        {/* Conversation / Images / Quiz */}
+        {quizTerbuka ? (
+          <main className="flex-1 overflow-hidden">
+            <Quiz denganSidebar onTutup={() => setQuizTerbuka(false)} />
+          </main>
+        ) : galeriTerbuka ? (
           <main className="flex-1 overflow-hidden">
             <Gallery onTutup={() => setGaleriTerbuka(false)} />
           </main>
