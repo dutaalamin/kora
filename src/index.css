@@ -147,3 +147,174 @@ body {
   color: #ffffff;
   text-decoration: underline;
 }
+
+/* ============================================================
+   GAYA DUOLINGO — tombol 3D, animasi, warna cerah
+   ============================================================ */
+
+/* ---------- Tombol 3D (khas Duolingo) ---------- */
+.dl-btn {
+  position: relative;
+  border-radius: 16px;
+  font-weight: 800;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  transition: transform 0.06s ease, box-shadow 0.06s ease, background 0.15s ease;
+  user-select: none;
+  border: none;
+  cursor: pointer;
+}
+.dl-btn:active:not(:disabled) {
+  transform: translateY(4px);
+  box-shadow: none !important;
+}
+.dl-btn:disabled {
+  cursor: not-allowed;
+}
+
+.dl-green {
+  background: #58cc02;
+  color: #ffffff;
+  box-shadow: 0 4px 0 #58a700;
+}
+.dl-green:hover:not(:disabled) {
+  background: #61e002;
+}
+
+.dl-blue {
+  background: #1cb0f6;
+  color: #ffffff;
+  box-shadow: 0 4px 0 #1899d6;
+}
+.dl-blue:hover:not(:disabled) {
+  background: #2bbaff;
+}
+
+.dl-white {
+  background: #ffffff;
+  color: #1cb0f6;
+  border: 2px solid #e5e5e5;
+  box-shadow: 0 4px 0 #e5e5e5;
+}
+.dl-white:hover:not(:disabled) {
+  background: #f7f7f7;
+}
+
+.dl-gray {
+  background: #e5e5e5;
+  color: #afafaf;
+  box-shadow: none;
+}
+
+.dl-red {
+  background: #ff4b4b;
+  color: #ffffff;
+  box-shadow: 0 4px 0 #ea2b2b;
+}
+
+/* Pilihan jawaban */
+.dl-pilih {
+  background: #ffffff;
+  border: 2px solid #e5e5e5;
+  border-bottom-width: 4px;
+  color: #3c3c3c;
+  transition: all 0.12s ease;
+  cursor: pointer;
+}
+.dl-pilih:hover:not(:disabled) {
+  background: #f7f7f7;
+}
+.dl-pilih-aktif {
+  background: #ddf4ff;
+  border-color: #1cb0f6;
+  color: #1899d6;
+}
+.dl-pilih-benar {
+  background: #d7ffb8;
+  border-color: #58cc02;
+  color: #58a700;
+}
+.dl-pilih-salah {
+  background: #ffdfe0;
+  border-color: #ff4b4b;
+  color: #ea2b2b;
+}
+.dl-pilih-mati {
+  opacity: 0.45;
+}
+
+/* ---------- Animasi ---------- */
+@keyframes dl-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-9px); }
+  40% { transform: translateX(9px); }
+  60% { transform: translateX(-6px); }
+  80% { transform: translateX(6px); }
+}
+.dl-shake {
+  animation: dl-shake 0.42s ease;
+}
+
+@keyframes dl-pop {
+  0% { transform: scale(0.85); opacity: 0; }
+  60% { transform: scale(1.04); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+.dl-pop {
+  animation: dl-pop 0.28s cubic-bezier(0.2, 0.9, 0.3, 1.3);
+}
+
+@keyframes dl-slide-up {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+.dl-slide-up {
+  animation: dl-slide-up 0.26s cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+
+@keyframes dl-naik {
+  0% { transform: translateY(0); opacity: 1; }
+  100% { transform: translateY(-42px); opacity: 0; }
+}
+.dl-naik {
+  animation: dl-naik 0.9s ease-out forwards;
+}
+
+@keyframes dl-denyut {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.14); }
+}
+.dl-denyut {
+  animation: dl-denyut 0.45s ease;
+}
+
+@keyframes dl-getar {
+  0%, 100% { transform: rotate(0); }
+  25% { transform: rotate(-12deg); }
+  75% { transform: rotate(12deg); }
+}
+.dl-getar {
+  animation: dl-getar 0.3s ease;
+}
+
+/* ---------- Confetti ---------- */
+@keyframes dl-jatuh {
+  0% { transform: translateY(-12vh) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(105vh) rotate(720deg); opacity: 0.9; }
+}
+.dl-confetti {
+  position: fixed;
+  top: 0;
+  width: 9px;
+  height: 14px;
+  border-radius: 2px;
+  animation: dl-jatuh linear forwards;
+  pointer-events: none;
+  z-index: 60;
+}
+
+/* ---------- Latar terang ---------- */
+.dl-bg {
+  background: #ffffff;
+  color: #3c3c3c;
+}

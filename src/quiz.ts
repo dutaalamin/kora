@@ -2,6 +2,8 @@
 // Logika Quiz & Progres (gaya Duolingo)
 // ============================================================
 
+import { soalCadangan } from "./soalCadangan";
+
 export interface Soal {
   pertanyaan: string;
   pilihan: string[];
@@ -114,22 +116,27 @@ export function sudahMainHariIni(p: Progres): boolean {
   return p.terakhirMain === hariIni();
 }
 
-/** Ambil soal dari API. */
+/** Ambil soal dari API. Kalau gagal, pakai soal cadangan. */
 export async function ambilSoal(
   level: string,
   topik: string,
   jumlah: number,
 ): Promise<Soal[]> {
-  const res = await fetch("/api/quiz", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ level, topik, jumlah }),
-  });
+  try {
+    const res = await fetch("/api/quiz", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ level, topik, jumlah }),
+    });
 
-  const j = (await res.json().catch(() => ({}))) as { error?: string; soal?: Soal[] };
+    const j = (await res.json().catch(() => ({}))) as { error?: string; soal?: Soal[] };
 
-  if (!res.ok) throw new Error(j.error ?? "Gagal memuat soal.");
-  if (!Array.isArray(j.soal) || j.soal.length === 0) throw new Error("Soal kosong.");
+    if (!res.ok) throw new Error(j.error ?? "Gagal memuat soal.");
+    if (!Array.isArray(j.soal) || j.soal.length === 0) throw new Error("Soal kosong.");
 
-  return j.soal;
+    return j.soal;
+  } catch {
+    // Mode luring: pakai soal cadangan supaya latihan tetap jalan
+    return soalCadangan(topik, jumlah);
+  }
 }

@@ -1,22 +1,28 @@
-import { useState } from "react";
-import { X, Check, Flame, Star, Trophy, Loader2, ArrowRight } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import {
+  X, Check, Flame, Star, Trophy, Loader2, ArrowRight,
+  Heart, Zap,
+} from "lucide-react";
 import {
   ambilSoal, muatProgres, simpanProgres, updateProgres, levelDari,
   sudahMainHariIni, type Soal, type Progres,
 } from "../quiz";
+import {
+  siapkanAudio, suaraBenar, suaraSalah, suaraKetuk, suaraSelesai, suaraGagal,
+} from "../suara";
 
 // ============================================================
-// Halaman Quiz — gaya Duolingo
+// Halaman Quiz — gaya Duolingo (terang, tombol 3D, ada suara)
 // ============================================================
 
 type Layar = "menu" | "main" | "hasil";
 
 const TOPIK = [
-  { id: "kosakata sehari-hari", label: "Kosakata Sehari-hari" },
-  { id: "sapaan dan perkenalan", label: "Sapaan & Perkenalan" },
-  { id: "istilah kerja pabrik", label: "Istilah Kerja Pabrik" },
-  { id: "angka dan waktu", label: "Angka & Waktu" },
-  { id: "makanan dan minuman", label: "Makanan & Minuman" },
+  { id: "kosakata sehari-hari", label: "Sehari-hari", emoji: "💬" },
+  { id: "sapaan dan perkenalan", label: "Sapaan", emoji: "👋" },
+  { id: "istilah kerja pabrik", label: "Kerja Pabrik", emoji: "🏭" },
+  { id: "angka dan waktu", label: "Angka & Waktu", emoji: "🕐" },
+  { id: "makanan dan minuman", label: "Makanan", emoji: "🍜" },
 ];
 
 const LEVEL = [
@@ -24,6 +30,39 @@ const LEVEL = [
   { id: "menengah", label: "Menengah" },
   { id: "mahir", label: "Mahir" },
 ];
+
+const MAKS_NYAWA = 3;
+
+/** Confetti sederhana. */
+function Confetti() {
+  const potongan = useMemo(
+    () =>
+      Array.from({ length: 60 }, (_, i) => ({
+        id: i,
+        left: Math.random() * 100,
+        delay: Math.random() * 0.8,
+        durasi: 2 + Math.random() * 1.6,
+        warna: ["#58cc02", "#1cb0f6", "#ffc800", "#ff4b4b", "#ce82ff"][i % 5],
+      })),
+    []
+  );
+  return (
+    <div className="pointer-events-none fixed inset-0 z-[60] overflow-hidden">
+      {potongan.map((p) => (
+        <span
+          key={p.id}
+          className="dl-confetti"
+          style={{
+            left: `${p.left}%`,
+            background: p.warna,
+            animationDelay: `${p.delay}s`,
+            animationDuration: `${p.durasi}s`,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
 
 export default function Quiz({ onTutup }: { onTutup: () => void }) {
   const [layar, setLayar] = useState<Layar>("menu");
@@ -33,12 +72,18 @@ export default function Quiz({ onTutup }: { onTutup: () => void }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // Data sesi berjalan
+  // Sesi berjalan
   const [soal, setSoal] = useState<Soal[]>([]);
   const [nomor, setNomor] = useState(0);
   const [pilih, setPilih] = useState<number | null>(null);
   const [dinilai, setDinilai] = useState(false);
   const [benar, setBenar] = useState(0);
+  const [nyawa, setNyawa] = useState(MAKS_NYAWA);
+  const [combo, setCombo] = useState(0);
+  const [nyawaHabis, setNyawaHabis] = useState(false);
+
+  // Animasi
+  const [getar, setGetar] = useState(false);
 
   // Hasil
   const [xpDidapat, setXpDidapat] = useState(0);
@@ -47,8 +92,21 @@ export default function Quiz({ onTutup }: { onTutup: () => void }) {
   const lv = levelDari(progres.xp);
   const soalKini = soal[nomor];
   const persenLevel = Math.round((lv.xpLevelIni / lv.xpLevelDepan) * 100);
+  const persenSelesai = soal.length ? Math.round((nomor / soal.length) * 100) : 0;
+
+  // Aktifkan audio pada interaksi pertama
+  useEffect(() => {
+    const aktifkan = () => siapkanAudio();
+    window.addEventListener("pointerdown", aktifkan, { once: true });
+    window.addEventListener("keydown", aktifkan, { once: true });
+    return () => {
+      window.removeEventListener("pointerdown", aktifkan);
+      window.removeEventListener("keydown", aktifkan);
+    };
+  }, []);
 
   async function mulai() {
+    siapkanAudio();
     setLoading(true);
     setError("");
     try {
@@ -58,6 +116,9 @@ export default function Quiz({ onTutup }: { onTutup: () => void }) {
       setPilih(null);
       setDinilai(false);
       setBenar(0);
+      setNyawa(MAKS_NYAWA);
+      setCombo(0);
+      setNyawaHabis(false);
       setLayar("main");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Gagal memuat soal.");
@@ -68,29 +129,57 @@ export default function Quiz({ onTutup }: { onTutup: () => void }) {
 
   function jawab(i: number) {
     if (dinilai) return;
+    suaraKetuk();
     setPilih(i);
   }
 
   function cek() {
     if (pilih === null) return;
     setDinilai(true);
-    if (pilih === soalKini.jawaban) setBenar((b) => b + 1);
+    const tepat = pilih === soalKini.jawaban;
+    if (tepat) {
+      suaraBenar();
+      setBenar((b) => b + 1);
+      setCombo((c) => c + 1);
+    } else {
+      suaraSalah();
+      setCombo(0);
+      setGetar(true);
+      setTimeout(() => setGetar(false), 450);
+      setNyawa((n) => {
+        const sisa = n - 1;
+        if (sisa <= 0) {
+          setTimeout(() => {
+            suaraGagal();
+            setNyawaHabis(true);
+          }, 900);
+        }
+        return sisa;
+      });
+    }
+  }
+
+  function selesaikan(benarAkhir: number) {
+    const { baru, xpDidapat: xp, streakNaik: naik } = updateProgres(
+      progres,
+      benarAkhir,
+      soal.length
+    );
+    setProgres(baru);
+    simpanProgres(baru);
+    setXpDidapat(xp);
+    setStreakNaik(naik);
+    setLayar("hasil");
+    if (benarAkhir === soal.length) suaraSelesai();
   }
 
   function lanjut() {
+    if (nyawaHabis) {
+      selesaikan(benar);
+      return;
+    }
     if (nomor + 1 >= soal.length) {
-      // Selesai
-      const benarAkhir = benar;
-      const { baru, xpDidapat: xp, streakNaik: naik } = updateProgres(
-        progres,
-        benarAkhir,
-        soal.length,
-      );
-      setProgres(baru);
-      simpanProgres(baru);
-      setXpDidapat(xp);
-      setStreakNaik(naik);
-      setLayar("hasil");
+      selesaikan(benar);
     } else {
       setNomor((n) => n + 1);
       setPilih(null);
@@ -98,100 +187,125 @@ export default function Quiz({ onTutup }: { onTutup: () => void }) {
     }
   }
 
-  // ---------------- LAYAR MENU ----------------
+  // ================= LAYAR MENU =================
   if (layar === "menu") {
     return (
-      <div className="fixed inset-0 z-50 flex flex-col overflow-y-auto bg-black">
-        <div className="mx-auto w-full max-w-[560px] px-5 py-8">
+      <div className="dl-bg fixed inset-0 z-50 flex flex-col overflow-y-auto">
+        <div className="mx-auto w-full max-w-[560px] px-5 py-7">
           <div className="flex items-center justify-between">
-            <h1 className="text-[22px] font-bold text-white">Latihan Korea</h1>
+            <h1 className="text-[24px] font-extrabold text-[#3c3c3c]">
+              Latihan Korea 🇰🇷
+            </h1>
             <button
               onClick={onTutup}
-              className="flex h-9 w-9 items-center justify-center rounded-lg text-neutral-400 transition hover:bg-[#1a1a1a] hover:text-white"
+              className="flex h-10 w-10 items-center justify-center rounded-xl text-[#afafaf] transition hover:bg-[#f0f0f0]"
             >
-              <X size={19} />
+              <X size={20} />
             </button>
           </div>
 
           {/* Statistik */}
           <div className="mt-6 grid grid-cols-3 gap-3">
-            <div className="rounded-2xl border border-[#232323] bg-[#101010] p-4 text-center">
-              <Flame size={20} className="mx-auto mb-1 text-orange-400" />
-              <p className="text-[22px] font-bold text-white">{progres.streak}</p>
-              <p className="text-[11px] text-neutral-500">Streak</p>
+            <div className="rounded-2xl border-2 border-[#e5e5e5] bg-white p-4 text-center">
+              <Flame size={22} className="mx-auto mb-1 text-orange-500" />
+              <p className="text-[23px] font-extrabold text-[#3c3c3c]">
+                {progres.streak}
+              </p>
+              <p className="text-[11px] font-bold uppercase text-[#afafaf]">
+                Streak
+              </p>
             </div>
-            <div className="rounded-2xl border border-[#232323] bg-[#101010] p-4 text-center">
-              <Star size={20} className="mx-auto mb-1 text-yellow-400" />
-              <p className="text-[22px] font-bold text-white">{progres.xp}</p>
-              <p className="text-[11px] text-neutral-500">Total XP</p>
+            <div className="rounded-2xl border-2 border-[#e5e5e5] bg-white p-4 text-center">
+              <Star size={22} className="mx-auto mb-1 text-yellow-500" />
+              <p className="text-[23px] font-extrabold text-[#3c3c3c]">
+                {progres.xp}
+              </p>
+              <p className="text-[11px] font-bold uppercase text-[#afafaf]">
+                Total XP
+              </p>
             </div>
-            <div className="rounded-2xl border border-[#232323] bg-[#101010] p-4 text-center">
-              <Trophy size={20} className="mx-auto mb-1 text-sky-400" />
-              <p className="text-[22px] font-bold text-white">{lv.level}</p>
-              <p className="text-[11px] text-neutral-500">Level</p>
+            <div className="rounded-2xl border-2 border-[#e5e5e5] bg-white p-4 text-center">
+              <Trophy size={22} className="mx-auto mb-1 text-sky-500" />
+              <p className="text-[23px] font-extrabold text-[#3c3c3c]">
+                {lv.level}
+              </p>
+              <p className="text-[11px] font-bold uppercase text-[#afafaf]">
+                Level
+              </p>
             </div>
           </div>
 
           {/* Progres level */}
-          <div className="mt-5 rounded-2xl border border-[#232323] bg-[#101010] p-4">
+          <div className="mt-4 rounded-2xl border-2 border-[#e5e5e5] bg-white p-4">
             <div className="flex items-center justify-between text-[13px]">
-              <span className="font-medium text-white">Level {lv.level}</span>
-              <span className="text-neutral-500">
+              <span className="font-bold text-[#3c3c3c]">Level {lv.level}</span>
+              <span className="font-semibold text-[#afafaf]">
                 {lv.xpLevelIni} / {lv.xpLevelDepan} XP
               </span>
             </div>
-            <div className="mt-2 h-2.5 overflow-hidden rounded-full bg-[#232323]">
+            <div className="mt-2 h-3 overflow-hidden rounded-full bg-[#e5e5e5]">
               <div
-                className="h-full rounded-full bg-gradient-to-r from-sky-500 to-emerald-400 transition-all"
+                className="h-full rounded-full bg-gradient-to-r from-[#58cc02] to-[#89e219] transition-all"
                 style={{ width: `${persenLevel}%` }}
               />
             </div>
           </div>
 
           {sudahMainHariIni(progres) && (
-            <p className="mt-3 text-center text-[12.5px] text-emerald-400">
-              Kamu sudah latihan hari ini. Mantap!
+            <p className="mt-3 text-center text-[13px] font-bold text-[#58cc02]">
+              ✓ Kamu sudah latihan hari ini. Mantap!
             </p>
           )}
 
-          {/* Pilih topik */}
-          <p className="mt-7 mb-2 text-[13px] font-medium text-neutral-400">Topik</p>
-          <div className="flex flex-wrap gap-2">
-            {TOPIK.map((t) => (
-              <button
-                key={t.id}
-                onClick={() => setTopik(t.id)}
-                className={`rounded-full px-4 py-2 text-[13.5px] transition ${
-                  topik === t.id
-                    ? "bg-white font-medium text-black"
-                    : "border border-[#2a2a2a] text-neutral-300 hover:bg-[#151515]"
-                }`}
-              >
-                {t.label}
-              </button>
-            ))}
+          {/* Topik */}
+          <p className="mt-7 mb-2 text-[13px] font-extrabold uppercase tracking-wide text-[#afafaf]">
+            Pilih Topik
+          </p>
+          <div className="grid grid-cols-2 gap-2.5">
+            {TOPIK.map((t) => {
+              const aktif = topik === t.id;
+              return (
+                <button
+                  key={t.id}
+                  onClick={() => setTopik(t.id)}
+                  className={`flex items-center gap-2 rounded-2xl border-2 px-3.5 py-3.5 text-left text-[14px] font-bold transition ${
+                    aktif
+                      ? "border-[#1cb0f6] bg-[#ddf4ff] text-[#1899d6]"
+                      : "border-[#e5e5e5] bg-white text-[#3c3c3c] hover:bg-[#f7f7f7]"
+                  }`}
+                >
+                  <span className="text-[19px]">{t.emoji}</span>
+                  {t.label}
+                </button>
+              );
+            })}
           </div>
 
-          {/* Pilih level */}
-          <p className="mt-6 mb-2 text-[13px] font-medium text-neutral-400">Tingkat</p>
+          {/* Level */}
+          <p className="mt-6 mb-2 text-[13px] font-extrabold uppercase tracking-wide text-[#afafaf]">
+            Tingkat
+          </p>
           <div className="flex gap-2">
-            {LEVEL.map((l) => (
-              <button
-                key={l.id}
-                onClick={() => setLevel(l.id)}
-                className={`flex-1 rounded-xl py-2.5 text-[13.5px] transition ${
-                  level === l.id
-                    ? "bg-white font-medium text-black"
-                    : "border border-[#2a2a2a] text-neutral-300 hover:bg-[#151515]"
-                }`}
-              >
-                {l.label}
-              </button>
-            ))}
+            {LEVEL.map((l) => {
+              const aktif = level === l.id;
+              return (
+                <button
+                  key={l.id}
+                  onClick={() => setLevel(l.id)}
+                  className={`flex-1 rounded-2xl border-2 py-3 text-[13.5px] font-bold transition ${
+                    aktif
+                      ? "border-[#1cb0f6] bg-[#ddf4ff] text-[#1899d6]"
+                      : "border-[#e5e5e5] bg-white text-[#3c3c3c] hover:bg-[#f7f7f7]"
+                  }`}
+                >
+                  {l.label}
+                </button>
+              );
+            })}
           </div>
 
           {error && (
-            <p className="mt-5 rounded-xl border border-red-900/50 bg-red-950/30 px-4 py-3 text-[13.5px] text-red-300">
+            <p className="mt-5 rounded-2xl border-2 border-red-200 bg-red-50 px-4 py-3 text-[13.5px] font-semibold text-red-600">
               {error}
             </p>
           )}
@@ -199,15 +313,18 @@ export default function Quiz({ onTutup }: { onTutup: () => void }) {
           <button
             onClick={mulai}
             disabled={loading}
-            className="mt-7 flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-500 py-3.5 text-[15px] font-semibold text-black transition hover:bg-emerald-400 disabled:opacity-50"
+            className="dl-btn dl-green mt-7 flex w-full items-center justify-center gap-2 py-4 text-[16px]"
           >
             {loading ? (
               <>
-                <Loader2 size={18} className="animate-spin" />
-                Menyiapkan soal...
+                <Loader2 size={19} className="animate-spin" />
+                Menyiapkan...
               </>
             ) : (
-              "Mulai Latihan (5 soal)"
+              <>
+                <Zap size={19} />
+                Mulai Latihan
+              </>
             )}
           </button>
         </div>
@@ -215,41 +332,61 @@ export default function Quiz({ onTutup }: { onTutup: () => void }) {
     );
   }
 
-  // ---------------- LAYAR HASIL ----------------
+  // ================= LAYAR HASIL =================
   if (layar === "hasil") {
-    const sempurna = benar === soal.length;
-    const persen = Math.round((benar / soal.length) * 100);
+    const sempurna = benar === soal.length && !nyawaHabis;
+    const persen = soal.length ? Math.round((benar / soal.length) * 100) : 0;
     return (
-      <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black px-5">
-        <div className="w-full max-w-[440px] text-center">
-          <div className="text-[64px]">{sempurna ? "🏆" : persen >= 60 ? "🎉" : "💪"}</div>
-          <h2 className="mt-4 text-[26px] font-bold text-white">
-            {sempurna ? "Sempurna!" : persen >= 60 ? "Bagus!" : "Terus Semangat!"}
+      <div className="dl-bg fixed inset-0 z-50 flex flex-col items-center justify-center overflow-y-auto px-5">
+        {sempurna && <Confetti />}
+        <div className="w-full max-w-[440px] py-10 text-center">
+          <div
+            className={`text-[72px] ${sempurna ? "dl-denyut" : ""}`}
+          >
+            {nyawaHabis ? "💔" : sempurna ? "🏆" : persen >= 60 ? "🎉" : "💪"}
+          </div>
+          <h2 className="mt-3 text-[28px] font-extrabold text-[#3c3c3c]">
+            {nyawaHabis
+              ? "Nyawa Habis!"
+              : sempurna
+              ? "Sempurna!"
+              : persen >= 60
+              ? "Bagus Sekali!"
+              : "Terus Semangat!"}
           </h2>
-          <p className="mt-2 text-[15px] text-neutral-400">
+          <p className="mt-2 text-[15px] font-semibold text-[#afafaf]">
             Kamu benar {benar} dari {soal.length} soal
           </p>
 
           <div className="mt-7 grid grid-cols-3 gap-3">
-            <div className="rounded-2xl border border-[#232323] bg-[#101010] p-4">
-              <p className="text-[22px] font-bold text-yellow-400">+{xpDidapat}</p>
-              <p className="text-[11px] text-neutral-500">XP</p>
-            </div>
-            <div className="rounded-2xl border border-[#232323] bg-[#101010] p-4">
-              <p className="text-[22px] font-bold text-white">{persen}%</p>
-              <p className="text-[11px] text-neutral-500">Akurasi</p>
-            </div>
-            <div className="rounded-2xl border border-[#232323] bg-[#101010] p-4">
-              <p className="text-[22px] font-bold text-orange-400">
-                {progres.streak}
-                <Flame size={13} className="mb-1 ml-0.5 inline" />
+            <div className="rounded-2xl border-2 border-[#e5e5e5] bg-white p-4">
+              <p className="text-[23px] font-extrabold text-yellow-500">
+                +{xpDidapat}
               </p>
-              <p className="text-[11px] text-neutral-500">Streak</p>
+              <p className="text-[11px] font-bold uppercase text-[#afafaf]">
+                XP
+              </p>
+            </div>
+            <div className="rounded-2xl border-2 border-[#e5e5e5] bg-white p-4">
+              <p className="text-[23px] font-extrabold text-[#3c3c3c]">
+                {persen}%
+              </p>
+              <p className="text-[11px] font-bold uppercase text-[#afafaf]">
+                Akurasi
+              </p>
+            </div>
+            <div className="rounded-2xl border-2 border-[#e5e5e5] bg-white p-4">
+              <p className="text-[23px] font-extrabold text-orange-500">
+                {progres.streak}
+              </p>
+              <p className="text-[11px] font-bold uppercase text-[#afafaf]">
+                Streak
+              </p>
             </div>
           </div>
 
           {streakNaik && (
-            <p className="mt-4 text-[13.5px] text-orange-400">
+            <p className="mt-4 text-[14px] font-bold text-orange-500">
               🔥 Streak kamu sekarang {progres.streak} hari!
             </p>
           )}
@@ -257,13 +394,13 @@ export default function Quiz({ onTutup }: { onTutup: () => void }) {
           <div className="mt-8 flex flex-col gap-3">
             <button
               onClick={mulai}
-              className="rounded-xl bg-emerald-500 py-3.5 text-[15px] font-semibold text-black transition hover:bg-emerald-400"
+              className="dl-btn dl-green py-4 text-[16px]"
             >
               Latihan Lagi
             </button>
             <button
               onClick={() => setLayar("menu")}
-              className="rounded-xl border border-[#2a2a2a] py-3.5 text-[15px] text-neutral-300 transition hover:bg-[#151515]"
+              className="dl-btn dl-white py-4 text-[16px]"
             >
               Kembali ke Menu
             </button>
@@ -273,36 +410,63 @@ export default function Quiz({ onTutup }: { onTutup: () => void }) {
     );
   }
 
-  // ---------------- LAYAR MAIN ----------------
-  const persenSelesai = Math.round((nomor / soal.length) * 100);
+  // ================= LAYAR MAIN =================
+  const tepat = pilih === soalKini.jawaban;
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-black">
+    <div className="dl-bg fixed inset-0 z-50 flex flex-col">
       {/* Header */}
-      <div className="border-b border-[#1a1a1a] px-5 py-4">
-        <div className="mx-auto flex max-w-[560px] items-center gap-4">
+      <div className="border-b-2 border-[#e5e5e5] px-5 py-4">
+        <div className="mx-auto flex max-w-[560px] items-center gap-3">
           <button
             onClick={() => setLayar("menu")}
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-neutral-400 transition hover:bg-[#1a1a1a] hover:text-white"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-[#afafaf] transition hover:bg-[#f0f0f0]"
           >
-            <X size={18} />
+            <X size={20} />
           </button>
-          <div className="h-3 flex-1 overflow-hidden rounded-full bg-[#1f1f1f]">
+
+          <div className="h-4 flex-1 overflow-hidden rounded-full bg-[#e5e5e5]">
             <div
-              className="h-full rounded-full bg-emerald-500 transition-all duration-300"
+              className="h-full rounded-full bg-[#58cc02] transition-all duration-300"
               style={{ width: `${persenSelesai}%` }}
             />
           </div>
-          <span className="shrink-0 text-[13px] font-medium text-neutral-400">
-            {nomor + 1}/{soal.length}
-          </span>
+
+          {/* Combo */}
+          {combo >= 2 && (
+            <span className="dl-pop shrink-0 text-[14px] font-extrabold text-orange-500">
+              🔥{combo}
+            </span>
+          )}
+
+          {/* Nyawa */}
+          <div className="flex shrink-0 items-center gap-0.5">
+            {Array.from({ length: MAKS_NYAWA }, (_, i) => (
+              <Heart
+                key={i}
+                size={18}
+                className={
+                  i < nyawa
+                    ? "fill-[#ff4b4b] text-[#ff4b4b]"
+                    : "fill-[#e5e5e5] text-[#e5e5e5]"
+                }
+              />
+            ))}
+          </div>
         </div>
       </div>
 
       {/* Soal */}
       <div className="flex-1 overflow-y-auto px-5 py-8">
         <div className="mx-auto max-w-[560px]">
-          <h2 className="text-[20px] font-semibold leading-snug text-white">
+          <p className="text-[13px] font-extrabold uppercase tracking-wide text-[#afafaf]">
+            Soal {nomor + 1} dari {soal.length}
+          </p>
+          <h2
+            className={`mt-2 text-[21px] font-extrabold leading-snug text-[#3c3c3c] ${
+              getar ? "dl-shake" : ""
+            }`}
+          >
             {soalKini.pertanyaan}
           </h2>
 
@@ -310,70 +474,100 @@ export default function Quiz({ onTutup }: { onTutup: () => void }) {
             {soalKini.pilihan.map((p, i) => {
               const dipilih = pilih === i;
               const benarIni = i === soalKini.jawaban;
-              let gaya =
-                "border-[#2a2a2a] bg-[#0d0d0d] hover:bg-[#151515] text-white";
+              let kelas = "dl-pilih";
               if (dinilai) {
-                if (benarIni) gaya = "border-emerald-500 bg-emerald-950/40 text-white";
-                else if (dipilih) gaya = "border-red-500 bg-red-950/40 text-white";
-                else gaya = "border-[#232323] bg-[#0a0a0a] text-neutral-500";
+                if (benarIni) kelas = "dl-pilih dl-pilih-benar";
+                else if (dipilih) kelas = "dl-pilih dl-pilih-salah";
+                else kelas = "dl-pilih dl-pilih-mati";
               } else if (dipilih) {
-                gaya = "border-sky-500 bg-sky-950/30 text-white";
+                kelas = "dl-pilih dl-pilih-aktif";
               }
               return (
                 <button
                   key={i}
                   onClick={() => jawab(i)}
                   disabled={dinilai}
-                  className={`flex items-center gap-3 rounded-xl border-2 px-4 py-4 text-left text-[15.5px] transition ${gaya}`}
+                  className={`${kelas} flex items-center gap-3 rounded-2xl px-4 py-4 text-left text-[15.5px] font-bold`}
                 >
-                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-current text-[12px] font-semibold">
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border-2 border-current text-[12.5px] font-extrabold">
                     {String.fromCharCode(65 + i)}
                   </span>
-                  <span className="flex-1">{p}</span>
-                  {dinilai && benarIni && <Check size={18} className="text-emerald-400" />}
+                  <span className="kr flex-1">{p}</span>
+                  {dinilai && benarIni && (
+                    <Check size={20} className="text-[#58a700]" />
+                  )}
+                  {dinilai && dipilih && !benarIni && (
+                    <X size={20} className="text-[#ea2b2b]" />
+                  )}
                 </button>
               );
             })}
           </div>
-
-          {/* Penjelasan */}
-          {dinilai && (
-            <div
-              className={`mt-5 rounded-xl border px-4 py-3.5 ${
-                pilih === soalKini.jawaban
-                  ? "border-emerald-800/50 bg-emerald-950/30"
-                  : "border-red-800/50 bg-red-950/30"
-              }`}
-            >
-              <p className="text-[13.5px] font-semibold text-white">
-                {pilih === soalKini.jawaban ? "Benar!" : "Belum tepat"}
-              </p>
-              <p className="mt-1 text-[13.5px] leading-relaxed text-neutral-300">
-                {soalKini.penjelasan}
-              </p>
-            </div>
-          )}
         </div>
       </div>
 
-      {/* Tombol bawah */}
-      <div className="border-t border-[#1a1a1a] px-5 py-4">
-        <div className="mx-auto max-w-[560px]">
+      {/* Banner feedback + tombol */}
+      <div
+        className={`border-t-2 px-5 py-5 ${
+          dinilai
+            ? tepat
+              ? "border-[#d7ffb8] bg-[#d7ffb8]"
+              : "border-[#ffdfe0] bg-[#ffdfe0]"
+            : "border-[#e5e5e5] bg-white"
+        }`}
+      >
+        <div className="mx-auto flex max-w-[560px] items-center gap-4">
+          {dinilai && (
+            <div className="dl-pop flex flex-1 items-center gap-3">
+              <div
+                className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full ${
+                  tepat ? "bg-white" : "bg-white"
+                }`}
+              >
+                {tepat ? (
+                  <Check size={26} className="text-[#58a700]" />
+                ) : (
+                  <X size={26} className="text-[#ea2b2b]" />
+                )}
+              </div>
+              <div className="min-w-0">
+                <p
+                  className={`text-[16px] font-extrabold ${
+                    tepat ? "text-[#58a700]" : "text-[#ea2b2b]"
+                  }`}
+                >
+                  {tepat ? "Benar!" : "Belum Tepat"}
+                </p>
+                <p className="text-[13px] font-semibold leading-snug text-[#3c3c3c]">
+                  {soalKini.penjelasan}
+                </p>
+              </div>
+            </div>
+          )}
+
           {!dinilai ? (
             <button
               onClick={cek}
               disabled={pilih === null}
-              className="w-full rounded-xl bg-emerald-500 py-3.5 text-[15px] font-semibold text-black transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:bg-[#1f1f1f] disabled:text-neutral-600"
+              className={`w-full py-4 text-[16px] ${
+                pilih === null ? "dl-btn dl-gray" : "dl-btn dl-green"
+              }`}
             >
               Periksa
             </button>
           ) : (
             <button
               onClick={lanjut}
-              className="flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-500 py-3.5 text-[15px] font-semibold text-black transition hover:bg-emerald-400"
+              className={`dl-btn ${
+                tepat ? "dl-green" : "dl-red"
+              } shrink-0 px-7 py-4 text-[16px]`}
             >
-              {nomor + 1 >= soal.length ? "Lihat Hasil" : "Lanjut"}
-              <ArrowRight size={17} />
+              <span className="flex items-center gap-2">
+                {nyawaHabis || nomor + 1 >= soal.length
+                  ? "Lihat Hasil"
+                  : "Lanjut"}
+                <ArrowRight size={18} />
+              </span>
             </button>
           )}
         </div>
