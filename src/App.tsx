@@ -496,7 +496,7 @@ export default function App() {
             className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-[14px] font-medium text-white transition hover:bg-[#1a1a1a]"
           >
             <Gamepad2 size={17} className="text-neutral-300" />
-            Korean Games
+            Games
           </button>
         </div>
 
