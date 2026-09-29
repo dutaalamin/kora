@@ -72,3 +72,56 @@ export async function kirimChat(messages: ChatMessage[]): Promise<string> {
 
   return j.reply;
 }
+
+/**
+ * Versi streaming: panggil onPotong tiap ada potongan teks baru.
+ * Mengembalikan teks lengkap setelah selesai.
+ */
+export async function kirimChatStream(
+  messages: ChatMessage[],
+  onPotong: (teks: string) => void,
+): Promise<string> {
+  const res = await fetch("/api/chat", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ messages, stream: true }),
+  });
+
+  if (!res.ok || !res.body) {
+    // Server tidak mendukung streaming -> pakai cara biasa
+    const teks = await kirimChat(messages);
+    onPotong(teks);
+    return teks;
+  }
+
+  const reader = res.body.getReader();
+  const dec = new TextDecoder();
+  let buf = "";
+  let lengkap = "";
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buf += dec.decode(value, { stream: true });
+    const baris = buf.split("\n");
+    buf = baris.pop() ?? "";
+    for (const b of baris) {
+      const t = b.trim();
+      if (!t.startsWith("data:")) continue;
+      const json = t.slice(5).trim();
+      if (!json) continue;
+      try {
+        const obj = JSON.parse(json) as { t?: string; error?: string };
+        if (obj.t) {
+          lengkap += obj.t;
+          onPotong(lengkap);
+        }
+      } catch {
+        /* lewati potongan rusak */
+      }
+    }
+  }
+
+  if (!lengkap.trim()) throw new Error("The AI did not return an answer.");
+  return lengkap;
+}

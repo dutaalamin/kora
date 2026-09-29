@@ -162,6 +162,93 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     generationConfig: { temperature: 0.6, maxOutputTokens: 1500 },
   });
 
+  // ---------- MODE STREAMING (default) ----------
+  const mauStream = req.body?.stream !== false;
+  if (mauStream) {
+    res.setHeader("Content-Type", "text/event-stream; charset=utf-8");
+    res.setHeader("Cache-Control", "no-cache, no-transform");
+    res.setHeader("Connection", "keep-alive");
+    res.setHeader("X-Accel-Buffering", "no");
+    res.flushHeaders?.();
+
+    for (let round = 0; round < ROUNDS; round++) {
+      for (const model of MODELS) {
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse&key=${encodeURIComponent(key)}`;
+        let adaTeks = false;
+        try {
+          const ctrl = new AbortController();
+          const timer = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
+          const r = await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body,
+            signal: ctrl.signal,
+          });
+
+          if (!r.ok || !r.body) {
+            clearTimeout(timer);
+            continue; // model sibuk/gagal -> coba berikutnya
+          }
+
+          const reader = r.body.getReader();
+          const dec = new TextDecoder();
+          let buf = "";
+          try {
+            while (true) {
+              const { done, value } = await reader.read();
+              if (done) break;
+              buf += dec.decode(value, { stream: true });
+              const baris = buf.split("\n");
+              buf = baris.pop() ?? "";
+              for (const b of baris) {
+                const t = b.trim();
+                if (!t.startsWith("data:")) continue;
+                const json = t.slice(5).trim();
+                if (!json || json === "[DONE]") continue;
+                try {
+                  const obj = JSON.parse(json);
+                  const teks =
+                    obj.candidates?.[0]?.content?.parts
+                      ?.map((p: { text?: string }) => p.text ?? "")
+                      .join("") ?? "";
+                  if (teks) {
+                    adaTeks = true;
+                    res.write(`data: ${JSON.stringify({ t: teks })}\n\n`);
+                  }
+                } catch {
+                  /* potongan tidak lengkap, lewati */
+                }
+              }
+            }
+          } finally {
+            clearTimeout(timer);
+          }
+
+          if (adaTeks) {
+            res.write(`data: ${JSON.stringify({ done: true, model })}\n\n`);
+            res.end();
+            return;
+          }
+          continue; // tidak ada teks -> model berikutnya
+        } catch {
+          if (adaTeks) {
+            // sudah ada sebagian jawaban -> tutup dengan apa adanya
+            res.write(`data: ${JSON.stringify({ done: true, model })}\n\n`);
+            res.end();
+            return;
+          }
+          continue;
+        }
+      }
+      await sleep(GAP_MS);
+    }
+
+    res.write(`data: ${JSON.stringify({ error: "gagal" })}\n\n`);
+    res.end();
+    return;
+  }
+
+  // ---------- MODE NON-STREAM (cadangan) ----------
   let otherError: string | null = null;
 
   for (let round = 0; round < ROUNDS; round++) {

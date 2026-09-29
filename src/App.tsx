@@ -6,7 +6,7 @@ import {
   Paperclip, Mic, AudioLines, FileText, Square, Pencil,
 } from "lucide-react";
 import {
-  kirimChat, idBaru, judulDari, muatSemua, simpanSemua,
+  kirimChatStream, idBaru, judulDari, muatSemua, simpanSemua,
   type ChatMessage, type Percakapan, type Lampiran,
 } from "./chat";
 import Quiz from "./components/Quiz";
@@ -161,32 +161,7 @@ export default function App() {
     );
 
     try {
-      // Coba beberapa kali otomatis sebelum menyerah
-      let balas = "";
-      let sukses = false;
-      for (let coba = 0; coba < 3; coba++) {
-        try {
-          balas = await kirimChat(baru);
-          sukses = true;
-          break;
-        } catch {
-          if (coba < 2) await new Promise((r) => setTimeout(r, 800 * (coba + 1)));
-        }
-      }
-
-      if (sukses) {
-        setDaftar((d) =>
-          d.map((p) =>
-            p.id === id
-              ? { ...p, pesan: [...baru, { role: "model", text: balas }], diubah: Date.now() }
-              : p,
-          ),
-        );
-      } else {
-        setError("gagal");
-      }
-    } catch {
-      setError("gagal");
+      await jalankan(baru, id);
     } finally {
       setLoading(false);
       areaTeks.current?.focus();
@@ -206,31 +181,50 @@ export default function App() {
     setTimeout(() => setCopied(null), 1500);
   }
 
-  /** Kirim ulang riwayat ke AI (dipakai regenerate & edit). */
-  async function jalankan(riwayat: ChatMessage[]) {
+  /** Kirim ulang riwayat ke AI (dipakai kirim, regenerate & edit). */
+  async function jalankan(riwayat: ChatMessage[], id: string) {
     setLoading(true);
     setError("");
-    let balas = "";
+    // Sisipkan balon jawaban kosong yang akan terisi bertahap
+    setDaftar((d) =>
+      d.map((p) =>
+        p.id === id
+          ? { ...p, pesan: [...riwayat, { role: "model", text: "" }] }
+          : p,
+      ),
+    );
+
+    const tulis = (teks: string) => {
+      setDaftar((d) =>
+        d.map((p) => {
+          if (p.id !== id) return p;
+          const ps = [...p.pesan];
+          ps[ps.length - 1] = { role: "model", text: teks };
+          return { ...p, pesan: ps };
+        }),
+      );
+    };
+
     let sukses = false;
-    for (let coba = 0; coba < 3; coba++) {
+    for (let coba = 0; coba < 3 && !sukses; coba++) {
       try {
-        balas = await kirimChat(riwayat);
+        await kirimChatStream(riwayat, tulis);
         sukses = true;
-        break;
       } catch {
         if (coba < 2) await new Promise((r) => setTimeout(r, 800 * (coba + 1)));
       }
     }
+
     setLoading(false);
     if (sukses) {
       setDaftar((d) =>
-        d.map((p) =>
-          p.id === aktifId
-            ? { ...p, pesan: [...riwayat, { role: "model", text: balas }], diubah: Date.now() }
-            : p,
-        ),
+        d.map((p) => (p.id === id ? { ...p, diubah: Date.now() } : p)),
       );
     } else {
+      // Gagal -> buang balon kosong
+      setDaftar((d) =>
+        d.map((p) => (p.id === id ? { ...p, pesan: riwayat } : p)),
+      );
       setError("gagal");
     }
   }
@@ -249,7 +243,7 @@ export default function App() {
     setDaftar((d) =>
       d.map((p) => (p.id === aktifId ? { ...p, pesan: tanpaModelTerakhir } : p)),
     );
-    jalankan(tanpaModelTerakhir);
+    jalankan(tanpaModelTerakhir, aktifId);
   }
 
   /** Mulai edit pesan user pada index tertentu. */
@@ -277,7 +271,7 @@ export default function App() {
           : p,
       ),
     );
-    jalankan(baru);
+    jalankan(baru, aktifId);
   }
 
   /** Baca file yang dipilih/di-drop jadi lampiran. */
@@ -821,6 +815,9 @@ export default function App() {
                           <div className="kr text-[16px] leading-relaxed text-white">
                             <div className="markdown">
                               <ReactMarkdown remarkPlugins={[remarkGfm]}>{m.text}</ReactMarkdown>
+                              {loading && i === pesan.length - 1 && (
+                                <span className="kursor-tulis" />
+                              )}
                             </div>
                             <div className="mt-2 flex items-center gap-1">
                               <button
@@ -847,7 +844,7 @@ export default function App() {
                     </div>
                   ))}
 
-                  {loading && (
+                  {loading && pesan[pesan.length - 1]?.text === "" && (
                     <div className="flex justify-start">
                       <div className="flex items-center gap-1.5 py-1">
                         <span className="kora-dot" />

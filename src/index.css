@@ -446,3 +446,19 @@ body {
 .vo-pulse {
   animation: vo-pulse 1.1s ease-in-out infinite;
 }
+
+/* ---------- Kursor streaming ---------- */
+@keyframes vo-kedip {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+.kursor-tulis {
+  display: inline-block;
+  width: 7px;
+  height: 17px;
+  margin-left: 2px;
+  vertical-align: text-bottom;
+  background: #d4d4d4;
+  border-radius: 1px;
+  animation: vo-kedip 1s steps(1) infinite;
+}
