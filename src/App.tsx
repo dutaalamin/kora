@@ -3,7 +3,7 @@ import {
   Send, Loader2, Copy, Check, RotateCw,
   PanelLeft, Trash2, SquarePen,
   Search, Images, Gamepad2, X,
-  Paperclip, Mic, AudioLines, FileText, Square,
+  Paperclip, Mic, AudioLines, FileText, Square, Pencil,
 } from "lucide-react";
 import {
   kirimChat, idBaru, judulDari, muatSemua, simpanSemua,
@@ -36,6 +36,9 @@ export default function App() {
   const [lampiran, setLampiran] = useState<Lampiran[]>([]);
   const [merekam, setMerekam] = useState(false);
   const [voiceTerbuka, setVoiceTerbuka] = useState(false);
+  const [editIdx, setEditIdx] = useState<number | null>(null);
+  const [editTeks, setEditTeks] = useState("");
+  const [seret, setSeret] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const recRef = useRef<any>(null);
   const teksRecRef = useRef("");
@@ -201,6 +204,80 @@ export default function App() {
     navigator.clipboard.writeText(teks);
     setCopied(i);
     setTimeout(() => setCopied(null), 1500);
+  }
+
+  /** Kirim ulang riwayat ke AI (dipakai regenerate & edit). */
+  async function jalankan(riwayat: ChatMessage[]) {
+    setLoading(true);
+    setError("");
+    let balas = "";
+    let sukses = false;
+    for (let coba = 0; coba < 3; coba++) {
+      try {
+        balas = await kirimChat(riwayat);
+        sukses = true;
+        break;
+      } catch {
+        if (coba < 2) await new Promise((r) => setTimeout(r, 800 * (coba + 1)));
+      }
+    }
+    setLoading(false);
+    if (sukses) {
+      setDaftar((d) =>
+        d.map((p) =>
+          p.id === aktifId
+            ? { ...p, pesan: [...riwayat, { role: "model", text: balas }], diubah: Date.now() }
+            : p,
+        ),
+      );
+    } else {
+      setError("gagal");
+    }
+  }
+
+  /** Coba lagi jawaban AI terakhir. */
+  function ulangi() {
+    if (loading || !aktif) return;
+    const tanpaModelTerakhir = [...pesan];
+    while (
+      tanpaModelTerakhir.length &&
+      tanpaModelTerakhir[tanpaModelTerakhir.length - 1].role === "model"
+    ) {
+      tanpaModelTerakhir.pop();
+    }
+    if (!tanpaModelTerakhir.length) return;
+    setDaftar((d) =>
+      d.map((p) => (p.id === aktifId ? { ...p, pesan: tanpaModelTerakhir } : p)),
+    );
+    jalankan(tanpaModelTerakhir);
+  }
+
+  /** Mulai edit pesan user pada index tertentu. */
+  function mulaiEdit(i: number) {
+    setEditIdx(i);
+    setEditTeks(pesan[i].text);
+  }
+
+  /** Simpan hasil edit, buang pesan setelahnya, kirim ulang. */
+  function simpanEdit() {
+    if (editIdx === null || !aktif) return;
+    const isi = editTeks.trim();
+    if (!isi) return;
+    const sebelum = pesan.slice(0, editIdx);
+    const baru: ChatMessage[] = [
+      ...sebelum,
+      { ...pesan[editIdx], text: isi },
+    ];
+    setEditIdx(null);
+    setEditTeks("");
+    setDaftar((d) =>
+      d.map((p) =>
+        p.id === aktifId
+          ? { ...p, pesan: baru, judul: sebelum.length === 0 ? judulDari(isi) : p.judul, diubah: Date.now() }
+          : p,
+      ),
+    );
+    jalankan(baru);
   }
 
   /** Baca file yang dipilih/di-drop jadi lampiran. */
@@ -410,7 +487,33 @@ export default function App() {
   );
 
   return (
-    <div className="flex h-full bg-black text-white">
+    <div
+      className="flex h-full bg-black text-white"
+      onDragOver={(e) => {
+        e.preventDefault();
+        if (!seret) setSeret(true);
+      }}
+      onDragLeave={(e) => {
+        if (e.currentTarget === e.target) setSeret(false);
+      }}
+      onDrop={(e) => {
+        e.preventDefault();
+        setSeret(false);
+        if (e.dataTransfer?.files?.length) tambahFile(e.dataTransfer.files);
+      }}
+    >
+      {/* Overlay saat file diseret */}
+      {seret && (
+        <div className="pointer-events-none fixed inset-0 z-[80] flex items-center justify-center bg-black/70 backdrop-blur-sm">
+          <div className="rounded-3xl border-2 border-dashed border-[#4a4a4a] bg-[#111] px-12 py-10 text-center">
+            <Paperclip size={38} className="mx-auto mb-3 text-neutral-300" />
+            <p className="text-[17px] font-semibold text-white">Lepaskan file di sini</p>
+            <p className="mt-1 text-[13px] text-neutral-400">
+              Gambar, PDF, Word, Excel, atau teks
+            </p>
+          </div>
+        </div>
+      )}
       {/* Sidebar */}
       <aside
         className={`fixed inset-y-0 left-0 z-40 flex w-[260px] shrink-0 flex-col bg-black transition-transform duration-200 md:static md:translate-x-0 ${
@@ -644,46 +747,100 @@ export default function App() {
               <>
                 <div className="flex-1 space-y-6">
                   {pesan.map((m, i) => (
-                    <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
+                    <div key={i} className={`group flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
                       <div className="max-w-[88%]">
                         {m.role === "user" ? (
-                          <div className="rounded-3xl bg-[#1f1f1f] px-4 py-2.5 text-[16px] leading-relaxed text-white">
-                            {m.lampiran && m.lampiran.length > 0 && (
-                              <div className="mb-2 flex flex-wrap gap-2">
-                                {m.lampiran.map((l, k) => (
-                                  <div key={k}>
-                                    {l.jenis === "gambar" ? (
-                                      <img
-                                        src={`data:${l.tipe};base64,${l.data}`}
-                                        alt={l.nama}
-                                        className="max-h-[320px] w-auto max-w-full rounded-2xl object-cover"
-                                      />
-                                    ) : (
-                                      <span className="flex items-center gap-2 rounded-xl border border-[#333] bg-[#2a2a2a] px-3 py-2 text-[12.5px] text-neutral-300">
-                                        <span className="flex h-7 w-7 items-center justify-center rounded-md bg-[#3a3a3a] text-[10px] font-bold uppercase text-white">
-                                          {l.ekstensi?.slice(0, 4) ?? "FILE"}
-                                        </span>
-                                        <span className="max-w-[180px] truncate">{l.nama}</span>
-                                      </span>
-                                    )}
-                                  </div>
-                                ))}
+                          editIdx === i ? (
+                            /* Mode edit pesan */
+                            <div className="rounded-2xl border border-[#3a3a3a] bg-[#1f1f1f] p-2">
+                              <textarea
+                                value={editTeks}
+                                onChange={(e) => setEditTeks(e.target.value)}
+                                rows={Math.min(6, editTeks.split("\n").length + 1)}
+                                autoFocus
+                                className="w-full resize-none bg-transparent px-2 py-1.5 text-[16px] text-white outline-none"
+                              />
+                              <div className="mt-1 flex justify-end gap-2">
+                                <button
+                                  onClick={() => {
+                                    setEditIdx(null);
+                                    setEditTeks("");
+                                  }}
+                                  className="rounded-full px-3.5 py-1.5 text-[13px] font-medium text-neutral-300 transition hover:bg-[#2a2a2a]"
+                                >
+                                  Cancel
+                                </button>
+                                <button
+                                  onClick={simpanEdit}
+                                  disabled={!editTeks.trim()}
+                                  className="rounded-full bg-white px-3.5 py-1.5 text-[13px] font-semibold text-black transition hover:bg-neutral-200 disabled:opacity-40"
+                                >
+                                  Send
+                                </button>
                               </div>
-                            )}
-                            {m.text && <span className="whitespace-pre-wrap">{m.text}</span>}
-                          </div>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-2">
+                              {/* Tombol edit (muncul saat hover) */}
+                              <button
+                                onClick={() => mulaiEdit(i)}
+                                className="order-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-neutral-500 opacity-0 transition group-hover:opacity-100 hover:bg-[#1a1a1a] hover:text-white"
+                                aria-label="Edit pesan"
+                                title="Edit"
+                              >
+                                <Pencil size={14} />
+                              </button>
+                              <div className="rounded-3xl bg-[#1f1f1f] px-4 py-2.5 text-[16px] leading-relaxed text-white">
+                                {m.lampiran && m.lampiran.length > 0 && (
+                                  <div className="mb-2 flex flex-wrap gap-2">
+                                    {m.lampiran.map((l, k) => (
+                                      <div key={k}>
+                                        {l.jenis === "gambar" ? (
+                                          <img
+                                            src={`data:${l.tipe};base64,${l.data}`}
+                                            alt={l.nama}
+                                            className="max-h-[320px] w-auto max-w-full rounded-2xl object-cover"
+                                          />
+                                        ) : (
+                                          <span className="flex items-center gap-2 rounded-xl border border-[#333] bg-[#2a2a2a] px-3 py-2 text-[12.5px] text-neutral-300">
+                                            <span className="flex h-7 w-7 items-center justify-center rounded-md bg-[#3a3a3a] text-[10px] font-bold uppercase text-white">
+                                              {l.ekstensi?.slice(0, 4) ?? "FILE"}
+                                            </span>
+                                            <span className="max-w-[180px] truncate">{l.nama}</span>
+                                          </span>
+                                        )}
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                                {m.text && <span className="whitespace-pre-wrap">{m.text}</span>}
+                              </div>
+                            </div>
+                          )
                         ) : (
                           <div className="kr text-[16px] leading-relaxed text-white">
                             <div className="markdown">
                               <ReactMarkdown remarkPlugins={[remarkGfm]}>{m.text}</ReactMarkdown>
                             </div>
-                            <button
-                              onClick={() => salin(i, m.text)}
-                              className="mt-2 inline-flex items-center gap-1.5 rounded-md px-1.5 py-1 text-[11px] font-medium text-neutral-500 transition hover:bg-[#1a1a1a] hover:text-neutral-200"
-                            >
-                              {copied === i ? <Check size={12} /> : <Copy size={12} />}
-                              {copied === i ? "Copied" : "Copy"}
-                            </button>
+                            <div className="mt-2 flex items-center gap-1">
+                              <button
+                                onClick={() => salin(i, m.text)}
+                                className="inline-flex items-center gap-1.5 rounded-md px-1.5 py-1 text-[11px] font-medium text-neutral-500 transition hover:bg-[#1a1a1a] hover:text-neutral-200"
+                              >
+                                {copied === i ? <Check size={12} /> : <Copy size={12} />}
+                                {copied === i ? "Copied" : "Copy"}
+                              </button>
+                              {/* Regenerate hanya di jawaban AI terakhir */}
+                              {i === pesan.length - 1 && !loading && (
+                                <button
+                                  onClick={ulangi}
+                                  className="inline-flex items-center gap-1.5 rounded-md px-1.5 py-1 text-[11px] font-medium text-neutral-500 transition hover:bg-[#1a1a1a] hover:text-neutral-200"
+                                >
+                                  <RotateCw size={12} />
+                                  Regenerate
+                                </button>
+                              )}
+                            </div>
                           </div>
                         )}
                       </div>
