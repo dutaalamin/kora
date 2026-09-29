@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import {
   Send, Loader2, Copy, Check, RotateCw,
   PanelLeft, Trash2, SquarePen,
-  Search, Images, FolderKanban, Gamepad2, X,
+  Search, Images, Gamepad2, X,
 } from "lucide-react";
 import {
   kirimChat, idBaru, judulDari, muatSemua, simpanSemua,
@@ -297,16 +297,6 @@ export default function App() {
 
           <button
             onClick={() => {
-              if (window.innerWidth < 768) setSidebar(false);
-            }}
-            className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-[14px] font-medium text-white transition hover:bg-[#1a1a1a]"
-          >
-            <FolderKanban size={17} className="text-neutral-300" />
-            Projects
-          </button>
-
-          <button
-            onClick={() => {
               setQuizTerbuka(true);
               if (window.innerWidth < 768) setSidebar(false);
             }}
@@ -366,13 +356,6 @@ export default function App() {
         {/* Prompt login (tampil kalau belum login) */}
         {!sudahLogin && (
           <div className="px-3 pb-3">
-            <p className="mb-2.5 text-[13px] font-semibold text-white">
-              Get responses tailored to you
-            </p>
-            <p className="mb-3 text-[12.5px] leading-relaxed text-neutral-400">
-              Log in to get answers based on saved chats, plus create images and
-              upload files.
-            </p>
             <button
               onClick={() => alert("Fitur login belum tersedia.")}
               className="w-full rounded-full border border-[#3a3a3a] bg-transparent py-2.5 text-[14px] font-semibold text-white transition hover:bg-[#1a1a1a]"

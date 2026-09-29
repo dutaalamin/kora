@@ -1,43 +1,29 @@
 import { useState } from "react";
-import { X, Search, Heart, Sparkles } from "lucide-react";
+import { X, Heart } from "lucide-react";
 
 interface Kartu {
   gambar: string;
   judul: string;
   korea: string;
   arti: string;
-  kategori: string;
 }
 
 const KARTU: Kartu[] = [
-  { gambar: "/img/hangul.svg", judul: "Hangul Dasar", korea: "한글", arti: "Alfabet Korea", kategori: "Dasar" },
-  { gambar: "/img/makanan.svg", judul: "Makanan Korea", korea: "한식", arti: "Masakan Korea", kategori: "Makanan" },
-  { gambar: "/img/travel.svg", judul: "Jalan-jalan", korea: "여행", arti: "Perjalanan", kategori: "Travel" },
-  { gambar: "/img/kerja.svg", judul: "Dunia Kerja", korea: "회사", arti: "Kantor / Perusahaan", kategori: "Kerja" },
+  { gambar: "/img/hangul.svg", judul: "Hangul Dasar", korea: "한글", arti: "Alfabet Korea" },
+  { gambar: "/img/makanan.svg", judul: "Makanan Korea", korea: "한식", arti: "Masakan Korea" },
+  { gambar: "/img/travel.svg", judul: "Jalan-jalan", korea: "여행", arti: "Perjalanan" },
+  { gambar: "/img/kerja.svg", judul: "Dunia Kerja", korea: "회사", arti: "Kantor / Perusahaan" },
 ];
 
-const KATEGORI = ["Semua", "Dasar", "Makanan", "Travel", "Kerja"];
-
 export default function Gallery({ onTutup }: { onTutup: () => void }) {
-  const [filter, setFilter] = useState("Semua");
-  const [cari, setCari] = useState("");
   const [suka, setSuka] = useState<Record<string, boolean>>({});
 
-  const tampil = KARTU.filter((k) => {
-    const cocokKategori = filter === "Semua" || k.kategori === filter;
-    const q = cari.trim().toLowerCase();
-    const cocokCari =
-      !q ||
-      k.judul.toLowerCase().includes(q) ||
-      k.arti.toLowerCase().includes(q) ||
-      k.korea.includes(cari.trim());
-    return cocokKategori && cocokCari;
-  });
+  const tampil = KARTU;
 
   return (
     <div className="flex h-full flex-col overflow-y-auto bg-black text-white">
       <div className="mx-auto w-full max-w-[900px] px-6 pb-10 pt-6">
-        {/* Judul + tutup */}
+        {/* Judul */}
         <div className="flex items-center justify-between">
           <h1 className="text-[28px] font-semibold tracking-tight">Images</h1>
           <button
@@ -49,45 +35,8 @@ export default function Gallery({ onTutup }: { onTutup: () => void }) {
           </button>
         </div>
 
-        {/* Bar "describe" gaya ChatGPT */}
-        <div className="mt-5 flex items-center gap-2 rounded-full bg-[#1a1a1a] py-3 pl-5 pr-3">
-          <Search size={17} className="shrink-0 text-neutral-500" />
-          <input
-            value={cari}
-            onChange={(e) => setCari(e.target.value)}
-            placeholder="Describe a new image"
-            className="w-full bg-transparent text-[15px] text-white outline-none placeholder:text-neutral-500"
-          />
-          <button
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white text-black transition hover:bg-neutral-200"
-            aria-label="Generate"
-          >
-            <Sparkles size={16} />
-          </button>
-        </div>
-
-        {/* Filter kategori */}
-        <div className="mt-4 flex gap-2 overflow-x-auto">
-          {KATEGORI.map((k) => (
-            <button
-              key={k}
-              onClick={() => setFilter(k)}
-              className={`shrink-0 rounded-full px-3.5 py-1.5 text-[13px] font-medium transition ${
-                filter === k
-                  ? "bg-white text-black"
-                  : "bg-[#1a1a1a] text-neutral-300 hover:bg-[#242424]"
-              }`}
-            >
-              {k}
-            </button>
-          ))}
-        </div>
-
-        {/* Judul seksi */}
-        <h2 className="mt-7 text-[16px] font-semibold">Create an image</h2>
-
         {/* Grid */}
-        <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
           {tampil.map((k) => (
             <div
               key={k.judul}
