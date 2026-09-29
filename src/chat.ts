@@ -1,6 +1,15 @@
+export interface Lampiran {
+  nama: string;
+  tipe: string; // MIME, mis. image/png atau text/plain
+  data: string; // base64 tanpa prefix (gambar) atau isi teks (teks)
+  jenis: "gambar" | "teks";
+  ukuran: number; // byte
+}
+
 export interface ChatMessage {
   role: "user" | "model";
   text: string;
+  lampiran?: Lampiran[];
 }
 
 export interface Percakapan {

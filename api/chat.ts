@@ -118,9 +118,17 @@ RULE OF THUMB:
 - General question (not Korean) -> just answer it normally.
 - Live data (price, weather, news) -> say you cannot check it live, then suggest a source. Keep it to one short line, no lecture.`;
 
+interface Lampiran {
+  nama: string;
+  tipe: string;
+  data: string;
+  jenis: "gambar" | "teks";
+}
+
 interface Pesan {
   role: "user" | "model";
   text: string;
+  lampiran?: Lampiran[];
 }
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -141,10 +149,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(400).json({ error: "No messages provided." });
   }
 
-  const contents = messages.slice(-20).map((m) => ({
-    role: m.role === "model" ? "model" : "user",
-    parts: [{ text: String(m.text ?? "").slice(0, 4000) }],
-  }));
+  const contents = messages.slice(-20).map((m) => {
+    const parts: Record<string, unknown>[] = [{ text: String(m.text ?? "").slice(0, 4000) }];
+    for (const l of m.lampiran ?? []) {
+      if (!l || typeof l.data !== "string") continue;
+      if (l.jenis === "gambar" && l.tipe.startsWith("image/")) {
+        parts.push({ inline_data: { mime_type: l.tipe, data: l.data } });
+      } else if (l.jenis === "teks") {
+        parts.push({
+          text: `\n\n[Isi file "${l.nama}"]:\n${String(l.data).slice(0, 20000)}`,
+        });
+      }
+    }
+    return {
+      role: m.role === "model" ? "model" : "user",
+      parts,
+    };
+  });
 
   const body = JSON.stringify({
     systemInstruction: { parts: [{ text: SYSTEM }] },

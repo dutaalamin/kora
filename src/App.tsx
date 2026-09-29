@@ -3,13 +3,15 @@ import {
   Send, Loader2, Copy, Check, RotateCw,
   PanelLeft, Trash2, SquarePen,
   Search, Images, Gamepad2, X,
+  Paperclip, Mic, AudioLines, FileText, Square,
 } from "lucide-react";
 import {
   kirimChat, idBaru, judulDari, muatSemua, simpanSemua,
-  type ChatMessage, type Percakapan,
+  type ChatMessage, type Percakapan, type Lampiran,
 } from "./chat";
 import Quiz from "./components/Quiz";
 import Gallery from "./components/Gallery";
+import VoiceMode from "./components/VoiceMode";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
@@ -30,6 +32,13 @@ export default function App() {
   const [galeriTerbuka, setGaleriTerbuka] = useState(false);
   // TODO: ganti jadi true kalau fitur login sudah jadi
   const [sudahLogin] = useState(false);
+  const [lampiran, setLampiran] = useState<Lampiran[]>([]);
+  const [merekam, setMerekam] = useState(false);
+  const [voiceTerbuka, setVoiceTerbuka] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const recRef = useRef<any>(null);
+  const teksRecRef = useRef("");
+  const dasarRecRef = useRef("");
   const bawah = useRef<HTMLDivElement>(null);
   const areaTeks = useRef<HTMLTextAreaElement>(null);
 
@@ -103,8 +112,10 @@ export default function App() {
 
   async function kirim(teks?: string) {
     const isi = (teks ?? input).trim();
-    if (!isi || loading) return;
+    if ((!isi && lampiran.length === 0) || loading) return;
     setGaleriTerbuka(false);
+
+    const kiriman: Lampiran[] = lampiran;
 
     let id = aktifId;
     if (!id || !aktif) {
@@ -121,8 +132,12 @@ export default function App() {
     }
 
     const pesanLama = aktif?.pesan ?? [];
-    const baru: ChatMessage[] = [...pesanLama, { role: "user", text: isi }];
+    const baru: ChatMessage[] = [
+      ...pesanLama,
+      { role: "user", text: isi, lampiran: kiriman.length ? kiriman : undefined },
+    ];
     setInput("");
+    setLampiran([]);
     setLoading(true);
     setError("");
 
@@ -131,7 +146,7 @@ export default function App() {
         p.id === id
           ? {
               ...p,
-              judul: p.pesan.length === 0 ? judulDari(isi) : p.judul,
+              judul: p.pesan.length === 0 ? judulDari(isi || kiriman[0]?.nama || "") : p.judul,
               pesan: baru,
               diubah: Date.now(),
             }
@@ -185,6 +200,75 @@ export default function App() {
     setTimeout(() => setCopied(null), 1500);
   }
 
+  /** Baca file yang dipilih/di-drop jadi lampiran. */
+  async function tambahFile(files: FileList | File[] | null) {
+    if (!files) return;
+    const daftar = Array.from(files).slice(0, 4);
+    const baru: Lampiran[] = [];
+    for (const f of daftar) {
+      const maks = 4 * 1024 * 1024; // 4 MB
+      if (f.size > maks) continue;
+      const tipe = f.type || "";
+      if (tipe.startsWith("image/")) {
+        const b64 = await new Promise<string>((res) => {
+          const r = new FileReader();
+          r.onload = () => res(String(r.result).split(",")[1] ?? "");
+          r.readAsDataURL(f);
+        });
+        baru.push({ nama: f.name, tipe, data: b64, jenis: "gambar", ukuran: f.size });
+      } else if (
+        tipe.startsWith("text/") ||
+        /\.(txt|md|csv|json|js|ts|tsx|jsx|py|html|css|log)$/i.test(f.name)
+      ) {
+        const isi = await f.text();
+        baru.push({
+          nama: f.name,
+          tipe: tipe || "text/plain",
+          data: isi.slice(0, 20000),
+          jenis: "teks",
+          ukuran: f.size,
+        });
+      }
+    }
+    if (baru.length) setLampiran((l) => [...l, ...baru].slice(0, 4));
+  }
+
+  /** Mulai/stop rekam suara jadi teks (isi kotak chat). */
+  function rekamSuara() {
+    const SR =
+      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SR) {
+      alert("Browser kamu belum mendukung input suara. Coba pakai Chrome.");
+      return;
+    }
+    if (merekam) {
+      recRef.current?.stop?.();
+      return;
+    }
+    const rec = new SR();
+    recRef.current = rec;
+    rec.lang = "id-ID";
+    rec.interimResults = true;
+    rec.continuous = false;
+    teksRecRef.current = "";
+    dasarRecRef.current = input;
+
+    rec.onresult = (e: any) => {
+      let interim = "";
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        const t = e.results[i][0].transcript;
+        if (e.results[i].isFinal) teksRecRef.current += t;
+        else interim += t;
+      }
+      const dasar = dasarRecRef.current ? dasarRecRef.current.trim() + " " : "";
+      setInput(dasar + teksRecRef.current + interim);
+    };
+    rec.onend = () => setMerekam(false);
+    rec.onerror = () => setMerekam(false);
+    setMerekam(true);
+    rec.start();
+  }
+
   const urut = [...daftar]
     .sort((a, b) => b.diubah - a.diubah)
     .filter((p) =>
@@ -193,24 +277,106 @@ export default function App() {
 
   /** Chat input box (used both on the empty state and inside a conversation). */
   const kotakChat = (
-    <div className="flex items-center gap-2 rounded-full bg-[#1f1f1f] py-2 pl-7 pr-2">
-      <textarea
-        ref={areaTeks}
-        value={input}
-        onChange={(e) => setInput(e.target.value)}
-        onKeyDown={onKey}
-        rows={1}
-        placeholder="Ask Kora"
-        className="max-h-[180px] min-h-[30px] flex-1 resize-none self-center bg-transparent py-1.5 text-[16px] text-white outline-none placeholder:text-neutral-400"
-      />
-      <button
-        onClick={() => kirim()}
-        disabled={loading || !input.trim()}
-        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#3a3a3a] text-white transition hover:bg-[#4a4a4a] disabled:opacity-40"
-        aria-label="Send"
-      >
-        {loading ? <Loader2 size={19} className="animate-spin" /> : <Send size={18} />}
-      </button>
+    <div className="rounded-[26px] bg-[#1f1f1f] p-2">
+      {/* Preview lampiran */}
+      {lampiran.length > 0 && (
+        <div className="flex flex-wrap gap-2 px-2 pb-2 pt-1">
+          {lampiran.map((l, i) => (
+            <div
+              key={i}
+              className="group relative flex items-center gap-2 rounded-xl border border-[#333] bg-[#2a2a2a] px-2.5 py-1.5"
+            >
+              {l.jenis === "gambar" ? (
+                <img
+                  src={`data:${l.tipe};base64,${l.data}`}
+                  alt={l.nama}
+                  className="h-8 w-8 rounded-lg object-cover"
+                />
+              ) : (
+                <FileText size={18} className="text-neutral-400" />
+              )}
+              <span className="max-w-[140px] truncate text-[12.5px] text-neutral-300">
+                {l.nama}
+              </span>
+              <button
+                onClick={() => setLampiran((a) => a.filter((_, k) => k !== i))}
+                className="flex h-5 w-5 items-center justify-center rounded-full bg-black/50 text-neutral-300 transition hover:bg-black/80 hover:text-white"
+                aria-label="Hapus lampiran"
+              >
+                <X size={12} />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div className="flex items-end gap-1">
+        {/* Lampiran */}
+        <input
+          ref={fileRef}
+          type="file"
+          multiple
+          accept="image/*,.txt,.md,.csv,.json,.js,.ts,.tsx,.jsx,.py,.html,.css,.log"
+          className="hidden"
+          onChange={(e) => {
+            tambahFile(e.target.files);
+            e.target.value = "";
+          }}
+        />
+        <button
+          onClick={() => fileRef.current?.click()}
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-neutral-400 transition hover:bg-[#2a2a2a] hover:text-white"
+          aria-label="Tambah file"
+          title="Tambah file"
+        >
+          <Paperclip size={19} />
+        </button>
+
+        <textarea
+          ref={areaTeks}
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={onKey}
+          rows={1}
+          placeholder="Ask Kora"
+          className="max-h-[180px] min-h-[36px] flex-1 resize-none self-center bg-transparent px-1 py-2 text-[16px] text-white outline-none placeholder:text-neutral-400"
+        />
+
+        {/* Voice mode penuh */}
+        <button
+          onClick={() => setVoiceTerbuka(true)}
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-neutral-400 transition hover:bg-[#2a2a2a] hover:text-white"
+          aria-label="Mode suara"
+          title="Mode suara"
+        >
+          <AudioLines size={19} />
+        </button>
+
+        {/* Mic isi teks / kirim */}
+        {input.trim() || lampiran.length > 0 ? (
+          <button
+            onClick={() => kirim()}
+            disabled={loading}
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-black transition hover:bg-neutral-200 disabled:opacity-40"
+            aria-label="Kirim"
+          >
+            {loading ? <Loader2 size={18} className="animate-spin" /> : <Send size={17} />}
+          </button>
+        ) : (
+          <button
+            onClick={rekamSuara}
+            className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition ${
+              merekam
+                ? "animate-pulse bg-red-500 text-white"
+                : "text-neutral-400 hover:bg-[#2a2a2a] hover:text-white"
+            }`}
+            aria-label={merekam ? "Berhenti merekam" : "Bicara"}
+            title={merekam ? "Berhenti merekam" : "Bicara"}
+          >
+            {merekam ? <Square size={16} className="fill-white" /> : <Mic size={19} />}
+          </button>
+        )}
+      </div>
     </div>
   );
 
@@ -374,6 +540,32 @@ export default function App() {
         />
       )}
 
+      {/* Mode suara penuh */}
+      {voiceTerbuka && (
+        <VoiceMode
+          riwayatAwal={pesan}
+          onTutup={() => setVoiceTerbuka(false)}
+          onSimpan={(p) => {
+            setDaftar((d) => {
+              if (aktifId && d.some((x) => x.id === aktifId)) {
+                return d.map((x) =>
+                  x.id === aktifId ? { ...x, pesan: p, diubah: Date.now() } : x,
+                );
+              }
+              const baru: Percakapan = {
+                id: idBaru(),
+                judul: judulDari(p[0]?.text ?? "Voice chat"),
+                pesan: p,
+                dibuat: Date.now(),
+                diubah: Date.now(),
+              };
+              setAktifId(baru.id);
+              return [baru, ...d];
+            });
+          }}
+        />
+      )}
+
       {/* Area utama */}
       <div className="flex min-w-0 flex-1 flex-col bg-black">
         {/* Open-sidebar button (shown when sidebar is closed) */}
@@ -426,8 +618,28 @@ export default function App() {
                     <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
                       <div className="max-w-[88%]">
                         {m.role === "user" ? (
-                          <div className="whitespace-pre-wrap rounded-3xl bg-[#1f1f1f] px-4 py-2.5 text-[16px] leading-relaxed text-white">
-                            {m.text}
+                          <div className="rounded-3xl bg-[#1f1f1f] px-4 py-2.5 text-[16px] leading-relaxed text-white">
+                            {m.lampiran && m.lampiran.length > 0 && (
+                              <div className="mb-2 flex flex-wrap gap-2">
+                                {m.lampiran.map((l, k) => (
+                                  <div key={k} className="flex items-center gap-2">
+                                    {l.jenis === "gambar" ? (
+                                      <img
+                                        src={`data:${l.tipe};base64,${l.data}`}
+                                        alt={l.nama}
+                                        className="max-h-48 rounded-xl object-cover"
+                                      />
+                                    ) : (
+                                      <span className="flex items-center gap-1.5 rounded-lg border border-[#333] bg-[#2a2a2a] px-2.5 py-1.5 text-[12.5px] text-neutral-300">
+                                        <FileText size={14} />
+                                        {l.nama}
+                                      </span>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                            {m.text && <span className="whitespace-pre-wrap">{m.text}</span>}
                           </div>
                         ) : (
                           <div className="kr text-[16px] leading-relaxed text-white">
