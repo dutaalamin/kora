@@ -630,7 +630,7 @@ export default function App() {
                     How can I help you?
                   </h2>
                   <p className="mt-3 text-[15px] text-neutral-400">
-                    Ask me anything about Korean
+                    Ask me anything
                   </p>
                   {/* Desktop: chat box right under the greeting */}
                   {!isMobile && <div className="mt-8 w-full">{kotakChat}</div>}
