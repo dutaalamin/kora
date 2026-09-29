@@ -194,7 +194,15 @@ export default function App() {
       ),
     );
 
+    // Buffer antrean: teks yang sudah diterima tapi belum "diketik"
+    let tujuan = "";
+    let tampil = 0;
+
     const tulis = (teks: string) => {
+      tujuan = teks;
+    };
+
+    const setTeks = (teks: string) => {
       setDaftar((d) =>
         d.map((p) => {
           if (p.id !== id) return p;
@@ -205,6 +213,17 @@ export default function App() {
       );
     };
 
+    // Efek ketik: setiap 16ms tambah beberapa huruf agar halus
+    const pengetik = setInterval(() => {
+      if (tampil >= tujuan.length) return;
+      const sisa = tujuan.length - tampil;
+      // Kecepatan dasar 1 huruf/tick, dipercepat kalau tertinggal jauh,
+      // tapi dibatasi maksimal 4 huruf/tick supaya tetap enak dibaca
+      const langkah = Math.min(4, Math.max(1, Math.ceil(sisa / 60)));
+      tampil = Math.min(tujuan.length, tampil + langkah);
+      setTeks(tujuan.slice(0, tampil));
+    }, 16);
+
     let sukses = false;
     for (let coba = 0; coba < 3 && !sukses; coba++) {
       try {
@@ -214,6 +233,18 @@ export default function App() {
         if (coba < 2) await new Promise((r) => setTimeout(r, 800 * (coba + 1)));
       }
     }
+
+    // Habiskan sisa antrean supaya semua teks tampil
+    await new Promise<void>((selesai) => {
+      const tunggu = setInterval(() => {
+        if (tampil >= tujuan.length) {
+          clearInterval(tunggu);
+          clearInterval(pengetik);
+          selesai();
+        }
+      }, 16);
+    });
+    setTeks(tujuan);
 
     setLoading(false);
     if (sukses) {
