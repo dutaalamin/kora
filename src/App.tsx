@@ -1,13 +1,15 @@
 import { useEffect, useRef, useState } from "react";
 import {
   Send, Loader2, Copy, Check, RotateCw,
-  PanelLeft, Trash2, SquarePen, GraduationCap,
+  PanelLeft, Trash2, SquarePen,
+  Search, Images, Library, Clock, Puzzle, FolderKanban, MoreHorizontal, Gamepad2, X,
 } from "lucide-react";
 import {
   kirimChat, idBaru, judulDari, muatSemua, simpanSemua,
   type ChatMessage, type Percakapan,
 } from "./chat";
 import Quiz from "./components/Quiz";
+import Gallery from "./components/Gallery";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
@@ -21,6 +23,10 @@ export default function App() {
   const [sidebar, setSidebar] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [quizTerbuka, setQuizTerbuka] = useState(false);
+  const [cari, setCari] = useState("");
+  const [cariBuka, setCariBuka] = useState(false);
+  const [galeriTerbuka, setGaleriTerbuka] = useState(false);
+  const [menuLain, setMenuLain] = useState(false);
   const bawah = useRef<HTMLDivElement>(null);
   const areaTeks = useRef<HTMLTextAreaElement>(null);
 
@@ -174,7 +180,11 @@ export default function App() {
     setTimeout(() => setCopied(null), 1500);
   }
 
-  const urut = [...daftar].sort((a, b) => b.diubah - a.diubah);
+  const urut = [...daftar]
+    .sort((a, b) => b.diubah - a.diubah)
+    .filter((p) =>
+      cari.trim() ? p.judul.toLowerCase().includes(cari.trim().toLowerCase()) : true,
+    );
 
   /** Chat input box (used both on the empty state and inside a conversation). */
   const kotakChat = (
@@ -213,17 +223,51 @@ export default function App() {
             <img src="/logo.svg" alt="Kora" className="h-9 w-9 rounded-lg" />
             <span className="text-[20px] font-semibold tracking-tight text-white">Kora</span>
           </div>
-          <button
-            onClick={() => setSidebar(false)}
-            className="flex h-8 w-8 items-center justify-center rounded-lg text-neutral-400 transition hover:bg-[#1a1a1a] hover:text-white"
-            aria-label="Close sidebar"
-          >
-            <PanelLeft size={17} />
-          </button>
+          <div className="flex items-center gap-0.5">
+            <button
+              onClick={() => setCariBuka((v) => !v)}
+              className="flex h-8 w-8 items-center justify-center rounded-lg text-neutral-400 transition hover:bg-[#1a1a1a] hover:text-white"
+              aria-label="Search"
+            >
+              <Search size={17} />
+            </button>
+            <button
+              onClick={() => setSidebar(false)}
+              className="flex h-8 w-8 items-center justify-center rounded-lg text-neutral-400 transition hover:bg-[#1a1a1a] hover:text-white"
+              aria-label="Close sidebar"
+            >
+              <PanelLeft size={17} />
+            </button>
+          </div>
         </div>
 
+        {/* Search box */}
+        {cariBuka && (
+          <div className="px-2 pb-1 pt-1">
+            <div className="flex items-center gap-2 rounded-lg bg-[#1a1a1a] px-3 py-2">
+              <Search size={15} className="shrink-0 text-neutral-500" />
+              <input
+                autoFocus
+                value={cari}
+                onChange={(e) => setCari(e.target.value)}
+                placeholder="Search chats"
+                className="w-full bg-transparent text-[14px] text-white outline-none placeholder:text-neutral-500"
+              />
+              {cari && (
+                <button
+                  onClick={() => setCari("")}
+                  className="shrink-0 text-neutral-500 hover:text-white"
+                  aria-label="Clear"
+                >
+                  <X size={14} />
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* New chat */}
-        <div className="px-2 pb-2 pt-2">
+        <div className="px-2 pb-1 pt-2">
           <button
             onClick={newChat}
             className="flex w-full items-center gap-2.5 rounded-lg bg-[#1a1a1a] px-3 py-2.5 text-[14px] font-medium text-white transition hover:bg-[#242424]"
@@ -233,18 +277,102 @@ export default function App() {
           </button>
         </div>
 
-        {/* Quiz */}
-        <div className="px-2 pb-2">
+        {/* Menu utama — gaya ChatGPT */}
+        <div className="px-2 pb-1">
+          <button
+            onClick={() => {
+              setGaleriTerbuka(true);
+              if (window.innerWidth < 768) setSidebar(false);
+            }}
+            className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-[14px] font-medium text-white transition hover:bg-[#1a1a1a]"
+          >
+            <Images size={17} className="text-neutral-300" />
+            Images
+          </button>
+
+          <button
+            onClick={() => {
+              if (window.innerWidth < 768) setSidebar(false);
+            }}
+            className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-[14px] font-medium text-white transition hover:bg-[#1a1a1a]"
+          >
+            <Library size={17} className="text-neutral-300" />
+            Library
+          </button>
+
+          <button
+            onClick={() => {
+              if (window.innerWidth < 768) setSidebar(false);
+            }}
+            className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-[14px] font-medium text-white transition hover:bg-[#1a1a1a]"
+          >
+            <Clock size={17} className="text-neutral-300" />
+            Scheduled
+          </button>
+
+          <button
+            onClick={() => {
+              if (window.innerWidth < 768) setSidebar(false);
+            }}
+            className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-[14px] font-medium text-white transition hover:bg-[#1a1a1a]"
+          >
+            <Puzzle size={17} className="text-neutral-300" />
+            Plugins
+          </button>
+
+          <button
+            onClick={() => {
+              if (window.innerWidth < 768) setSidebar(false);
+            }}
+            className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-[14px] font-medium text-white transition hover:bg-[#1a1a1a]"
+          >
+            <FolderKanban size={17} className="text-neutral-300" />
+            Projects
+          </button>
+
           <button
             onClick={() => {
               setQuizTerbuka(true);
               if (window.innerWidth < 768) setSidebar(false);
             }}
-            className="flex w-full items-center gap-2.5 rounded-lg border border-emerald-900/40 bg-emerald-950/20 px-3 py-2.5 text-[14px] font-medium text-emerald-300 transition hover:bg-emerald-950/40"
+            className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-[14px] font-medium text-white transition hover:bg-[#1a1a1a]"
           >
-            <GraduationCap size={17} />
-            Latihan Korea
+            <Gamepad2 size={17} className="text-neutral-300" />
+            Korean Games
           </button>
+
+          <button
+            onClick={() => setMenuLain((v) => !v)}
+            className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-[14px] font-medium text-white transition hover:bg-[#1a1a1a]"
+          >
+            <MoreHorizontal size={17} className="text-neutral-300" />
+            More
+          </button>
+
+          {menuLain && (
+            <div className="ml-3 border-l border-[#1f1f1f] pl-2">
+              <button
+                onClick={() => {
+                  setQuizTerbuka(true);
+                  if (window.innerWidth < 768) setSidebar(false);
+                }}
+                className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-[13.5px] text-neutral-300 transition hover:bg-[#1a1a1a] hover:text-white"
+              >
+                <Gamepad2 size={15} />
+                Korean Quiz
+              </button>
+              <button
+                onClick={() => {
+                  setGaleriTerbuka(true);
+                  if (window.innerWidth < 768) setSidebar(false);
+                }}
+                className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-[13.5px] text-neutral-300 transition hover:bg-[#1a1a1a] hover:text-white"
+              >
+                <Images size={15} />
+                Gallery
+              </button>
+            </div>
+          )}
         </div>
 
         {/* History */}
@@ -299,6 +427,9 @@ export default function App() {
 
       {/* Halaman Quiz */}
       {quizTerbuka && <Quiz onTutup={() => setQuizTerbuka(false)} />}
+
+      {/* Halaman Gallery / Images */}
+      {galeriTerbuka && <Gallery onTutup={() => setGaleriTerbuka(false)} />}
 
       {/* Area utama */}
       <div className="flex min-w-0 flex-1 flex-col bg-black">

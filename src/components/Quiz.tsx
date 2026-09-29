@@ -195,7 +195,7 @@ export default function Quiz({ onTutup }: { onTutup: () => void }) {
         <div className="mx-auto w-full max-w-[560px] px-5 py-7">
           <div className="flex items-center justify-between">
             <h1 className="text-[24px] font-extrabold text-[#3c3c3c]">
-              Latihan Korea 🇰🇷
+              Korean Games 🇰🇷
             </h1>
             <button
               onClick={onTutup}
