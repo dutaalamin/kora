@@ -170,7 +170,8 @@ export default function Quiz({ onTutup }: { onTutup: () => void }) {
     setXpDidapat(xp);
     setStreakNaik(naik);
     setLayar("hasil");
-    if (benarAkhir === soal.length) suaraSelesai();
+    // Suara selesai selalu berbunyi, nada menyesuaikan skor
+    suaraSelesai(benarAkhir, soal.length);
   }
 
   function lanjut() {

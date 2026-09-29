@@ -49,11 +49,12 @@ export function suaraBenar() {
   ]);
 }
 
-/** Suara salah: nada turun (buzz lembut). */
+/** Suara salah: "uh-oh" lembut menurun (tidak kasar). */
 export function suaraSalah() {
   mainkan([
-    { f: 311.13, t: 0, d: 0.18, jenis: "triangle", v: 0.2 },
-    { f: 207.65, t: 0.13, d: 0.34, jenis: "triangle", v: 0.2 },
+    { f: 440.0, t: 0, d: 0.12, jenis: "sine", v: 0.15 },
+    { f: 349.23, t: 0.11, d: 0.14, jenis: "sine", v: 0.15 },
+    { f: 261.63, t: 0.23, d: 0.34, jenis: "sine", v: 0.16 },
   ]);
 }
 
@@ -62,21 +63,48 @@ export function suaraKetuk() {
   mainkan([{ f: 523.25, t: 0, d: 0.06, v: 0.1, jenis: "square" }]);
 }
 
-/** Suara selesai sesi: fanfare singkat. */
-export function suaraSelesai() {
-  mainkan([
-    { f: 523.25, t: 0, d: 0.15 },
-    { f: 659.25, t: 0.13, d: 0.15 },
-    { f: 783.99, t: 0.26, d: 0.15 },
-    { f: 1046.5, t: 0.39, d: 0.4 },
-  ]);
+/**
+ * Suara selesai sesi — SELALU berbunyi saat latihan berakhir.
+ * Nada menyesuaikan skor:
+ *   - sempurna : fanfare besar "ta-da!"
+ *   - bagus    : fanfare sedang
+ *   - kurang   : nada lembut
+ */
+export function suaraSelesai(benar = 0, total = 1) {
+  const rasio = total > 0 ? benar / total : 0;
+
+  if (rasio >= 1) {
+    // Sempurna — fanfare besar
+    mainkan([
+      { f: 523.25, t: 0.0, d: 0.12, v: 0.2 },
+      { f: 659.25, t: 0.11, d: 0.12, v: 0.2 },
+      { f: 783.99, t: 0.22, d: 0.12, v: 0.2 },
+      { f: 1046.5, t: 0.33, d: 0.2, v: 0.22 },
+      { f: 783.99, t: 0.53, d: 0.1, v: 0.18 },
+      { f: 1046.5, t: 0.63, d: 0.5, v: 0.22 },
+      { f: 1318.5, t: 0.63, d: 0.5, v: 0.1 },
+    ]);
+  } else if (rasio >= 0.6) {
+    // Bagus — fanfare sedang
+    mainkan([
+      { f: 523.25, t: 0.0, d: 0.13, v: 0.2 },
+      { f: 659.25, t: 0.12, d: 0.13, v: 0.2 },
+      { f: 783.99, t: 0.24, d: 0.38, v: 0.22 },
+    ]);
+  } else {
+    // Kurang — nada lembut, tetap positif
+    mainkan([
+      { f: 440.0, t: 0.0, d: 0.14, v: 0.16 },
+      { f: 523.25, t: 0.14, d: 0.32, v: 0.18 },
+    ]);
+  }
 }
 
 /** Suara nyawa habis / gagal. */
 export function suaraGagal() {
   mainkan([
-    { f: 392, t: 0, d: 0.2, jenis: "sawtooth", v: 0.12 },
-    { f: 311.13, t: 0.16, d: 0.2, jenis: "sawtooth", v: 0.12 },
-    { f: 233.08, t: 0.32, d: 0.4, jenis: "sawtooth", v: 0.12 },
+    { f: 392, t: 0, d: 0.2, jenis: "sine", v: 0.14 },
+    { f: 311.13, t: 0.16, d: 0.2, jenis: "sine", v: 0.14 },
+    { f: 233.08, t: 0.32, d: 0.4, jenis: "sine", v: 0.14 },
   ]);
 }
