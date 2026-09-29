@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import {
   Send, Loader2, Copy, Check, RotateCw,
   PanelLeft, Trash2, SquarePen,
-  Search, Images, Library, Clock, Puzzle, FolderKanban, MoreHorizontal, Gamepad2, X,
+  Search, Images, FolderKanban, Gamepad2, X,
 } from "lucide-react";
 import {
   kirimChat, idBaru, judulDari, muatSemua, simpanSemua,
@@ -20,13 +20,14 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [copied, setCopied] = useState<number | null>(null);
-  const [sidebar, setSidebar] = useState(false);
+  const [sidebar, setSidebar] = useState(
+    typeof window !== "undefined" ? window.innerWidth >= 768 : true,
+  );
   const [isMobile, setIsMobile] = useState(false);
   const [quizTerbuka, setQuizTerbuka] = useState(false);
   const [cari, setCari] = useState("");
   const [cariBuka, setCariBuka] = useState(false);
   const [galeriTerbuka, setGaleriTerbuka] = useState(false);
-  const [menuLain, setMenuLain] = useState(false);
   const bawah = useRef<HTMLDivElement>(null);
   const areaTeks = useRef<HTMLTextAreaElement>(null);
 
@@ -296,36 +297,6 @@ export default function App() {
             }}
             className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-[14px] font-medium text-white transition hover:bg-[#1a1a1a]"
           >
-            <Library size={17} className="text-neutral-300" />
-            Library
-          </button>
-
-          <button
-            onClick={() => {
-              if (window.innerWidth < 768) setSidebar(false);
-            }}
-            className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-[14px] font-medium text-white transition hover:bg-[#1a1a1a]"
-          >
-            <Clock size={17} className="text-neutral-300" />
-            Scheduled
-          </button>
-
-          <button
-            onClick={() => {
-              if (window.innerWidth < 768) setSidebar(false);
-            }}
-            className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-[14px] font-medium text-white transition hover:bg-[#1a1a1a]"
-          >
-            <Puzzle size={17} className="text-neutral-300" />
-            Plugins
-          </button>
-
-          <button
-            onClick={() => {
-              if (window.innerWidth < 768) setSidebar(false);
-            }}
-            className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-[14px] font-medium text-white transition hover:bg-[#1a1a1a]"
-          >
             <FolderKanban size={17} className="text-neutral-300" />
             Projects
           </button>
@@ -340,39 +311,6 @@ export default function App() {
             <Gamepad2 size={17} className="text-neutral-300" />
             Korean Games
           </button>
-
-          <button
-            onClick={() => setMenuLain((v) => !v)}
-            className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-[14px] font-medium text-white transition hover:bg-[#1a1a1a]"
-          >
-            <MoreHorizontal size={17} className="text-neutral-300" />
-            More
-          </button>
-
-          {menuLain && (
-            <div className="ml-3 border-l border-[#1f1f1f] pl-2">
-              <button
-                onClick={() => {
-                  setQuizTerbuka(true);
-                  if (window.innerWidth < 768) setSidebar(false);
-                }}
-                className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-[13.5px] text-neutral-300 transition hover:bg-[#1a1a1a] hover:text-white"
-              >
-                <Gamepad2 size={15} />
-                Korean Quiz
-              </button>
-              <button
-                onClick={() => {
-                  setGaleriTerbuka(true);
-                  if (window.innerWidth < 768) setSidebar(false);
-                }}
-                className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-[13.5px] text-neutral-300 transition hover:bg-[#1a1a1a] hover:text-white"
-              >
-                <Images size={15} />
-                Gallery
-              </button>
-            </div>
-          )}
         </div>
 
         {/* History */}
@@ -428,9 +366,6 @@ export default function App() {
       {/* Halaman Quiz */}
       {quizTerbuka && <Quiz onTutup={() => setQuizTerbuka(false)} />}
 
-      {/* Halaman Gallery / Images */}
-      {galeriTerbuka && <Gallery onTutup={() => setGaleriTerbuka(false)} />}
-
       {/* Area utama */}
       <div className="flex min-w-0 flex-1 flex-col bg-black">
         {/* Open-sidebar button (shown when sidebar is closed) */}
@@ -444,7 +379,12 @@ export default function App() {
           </button>
         )}
 
-        {/* Conversation */}
+        {/* Conversation / Images */}
+        {galeriTerbuka ? (
+          <main className="flex-1 overflow-hidden">
+            <Gallery onTutup={() => setGaleriTerbuka(false)} />
+          </main>
+        ) : (
         <main className="flex-1 overflow-y-auto">
           <div className="mx-auto flex min-h-full max-w-[760px] flex-col px-4 pb-6 pt-16 md:pt-6">
             {pesan.length === 0 ? (
@@ -529,6 +469,7 @@ export default function App() {
             )}
           </div>
         </main>
+        )}
       </div>
 
     </div>
