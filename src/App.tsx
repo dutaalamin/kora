@@ -85,6 +85,7 @@ export default function App() {
     setAktifId(p.id);
     setError("");
     setInput("");
+    setGaleriTerbuka(false);
     if (window.innerWidth < 768) setSidebar(false);
     setTimeout(() => areaTeks.current?.focus(), 50);
   }
@@ -101,6 +102,7 @@ export default function App() {
   async function kirim(teks?: string) {
     const isi = (teks ?? input).trim();
     if (!isi || loading) return;
+    setGaleriTerbuka(false);
 
     let id = aktifId;
     if (!id || !aktif) {
@@ -335,6 +337,7 @@ export default function App() {
                     onClick={() => {
                       setAktifId(p.id);
                       setError("");
+                      setGaleriTerbuka(false);
                       if (window.innerWidth < 768) setSidebar(false);
                     }}
                     className="flex min-w-0 flex-1 items-center px-3 py-2.5 text-left"
