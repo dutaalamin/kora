@@ -28,6 +28,8 @@ export default function App() {
   const [cari, setCari] = useState("");
   const [cariBuka, setCariBuka] = useState(false);
   const [galeriTerbuka, setGaleriTerbuka] = useState(false);
+  // TODO: ganti jadi true kalau fitur login sudah jadi
+  const [sudahLogin] = useState(false);
   const bawah = useRef<HTMLDivElement>(null);
   const areaTeks = useRef<HTMLTextAreaElement>(null);
 
@@ -315,47 +317,70 @@ export default function App() {
           </button>
         </div>
 
-        {/* History */}
-        <div className="flex-1 overflow-y-auto px-2 pb-3">
-          {urut.length === 0 ? (
-            <p className="px-3 py-6 text-center text-[12px] text-neutral-500">
-              No conversations yet
-            </p>
-          ) : (
-            <>
-              <p className="px-3 pb-1 pt-3 text-[11.5px] font-medium text-neutral-500">
-                Recents
+        {/* History — hanya tampil kalau sudah login */}
+        {sudahLogin ? (
+          <div className="flex-1 overflow-y-auto px-2 pb-3">
+            {urut.length === 0 ? (
+              <p className="px-3 py-6 text-center text-[12px] text-neutral-500">
+                No conversations yet
               </p>
-              {urut.map((p) => (
-                <div
-                  key={p.id}
-                  className={`group flex items-center gap-1 rounded-lg pr-1 transition ${
-                    p.id === aktifId ? "bg-[#1a1a1a]" : "hover:bg-[#141414]"
-                  }`}
-                >
-                  <button
-                    onClick={() => {
-                      setAktifId(p.id);
-                      setError("");
-                      setGaleriTerbuka(false);
-                      if (window.innerWidth < 768) setSidebar(false);
-                    }}
-                    className="flex min-w-0 flex-1 items-center px-3 py-2.5 text-left"
+            ) : (
+              <>
+                <p className="px-3 pb-1 pt-3 text-[11.5px] font-medium text-neutral-500">
+                  Recents
+                </p>
+                {urut.map((p) => (
+                  <div
+                    key={p.id}
+                    className={`group flex items-center gap-1 rounded-lg pr-1 transition ${
+                      p.id === aktifId ? "bg-[#1a1a1a]" : "hover:bg-[#141414]"
+                    }`}
                   >
-                    <span className="truncate text-[14px] text-neutral-200">{p.judul}</span>
-                  </button>
-                  <button
-                    onClick={() => removeChat(p.id)}
-                    className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-neutral-500 opacity-0 transition group-hover:opacity-100 hover:bg-[#242424] hover:text-white"
-                    aria-label="Delete"
-                  >
-                    <Trash2 size={14} />
-                  </button>
-                </div>
-              ))}
-            </>
-          )}
-        </div>
+                    <button
+                      onClick={() => {
+                        setAktifId(p.id);
+                        setError("");
+                        setGaleriTerbuka(false);
+                        if (window.innerWidth < 768) setSidebar(false);
+                      }}
+                      className="flex min-w-0 flex-1 items-center px-3 py-2.5 text-left"
+                    >
+                      <span className="truncate text-[14px] text-neutral-200">{p.judul}</span>
+                    </button>
+                    <button
+                      onClick={() => removeChat(p.id)}
+                      className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-neutral-500 opacity-0 transition group-hover:opacity-100 hover:bg-[#242424] hover:text-white"
+                      aria-label="Delete"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                ))}
+              </>
+            )}
+          </div>
+        ) : (
+          <div className="flex-1" />
+        )}
+
+        {/* Prompt login (tampil kalau belum login) */}
+        {!sudahLogin && (
+          <div className="px-3 pb-3">
+            <p className="mb-2.5 text-[13px] font-semibold text-white">
+              Get responses tailored to you
+            </p>
+            <p className="mb-3 text-[12.5px] leading-relaxed text-neutral-400">
+              Log in to get answers based on saved chats, plus create images and
+              upload files.
+            </p>
+            <button
+              onClick={() => alert("Fitur login belum tersedia.")}
+              className="w-full rounded-full border border-[#3a3a3a] bg-transparent py-2.5 text-[14px] font-semibold text-white transition hover:bg-[#1a1a1a]"
+            >
+              Log in
+            </button>
+          </div>
+        )}
       </aside>
 
       {/* Lapisan gelap saat sidebar terbuka di HP */}
