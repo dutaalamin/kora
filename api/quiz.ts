@@ -20,14 +20,16 @@ const MODELS = [
   "gemini-flash-latest",
 ];
 
-const ROUNDS = 2;
+const ROUNDS = 3;
 const GAP_MS = 500;
-const TIMEOUT_MS = 15000;
+const TIMEOUT_MS = 40000;
 
 const PROMPT_SOAL = `You generate Korean vocabulary quiz questions for an Indonesian learner who works at a steel company (POSCO) in Indonesia.
 
 Generate exactly {JUMLAH} multiple-choice questions about: {TOPIK}
 Difficulty level: {LEVEL}
+
+{VARIASI}
 
 CRITICAL RULES (do not break these):
 - NEVER reveal the answer inside the question. The question must NOT contain the Indonesian meaning that is the correct option.
@@ -99,6 +101,16 @@ function bersihkanSoal(arr: any[]): any[] {
   return hasil;
 }
 
+/** Acak urutan array (Fisher-Yates). */
+function acakArray<T>(arr: T[]): T[] {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") {
     res.setHeader("Allow", "POST");
@@ -114,10 +126,37 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const level = String(req.body?.level ?? "pemula");
   const topik = String(req.body?.topik ?? "kosakata sehari-hari");
 
+  // Variasi acak supaya AI tidak mengulang kata yang sama tiap kali
+  const sudut = [
+    "benda di sekitar",
+    "kegiatan harian",
+    "perasaan dan sifat",
+    "tempat umum",
+    "keluarga dan orang",
+    "pekerjaan dan kantor",
+    "alam dan cuaca",
+    "transportasi",
+    "teknologi",
+    "kesehatan",
+    "belanja dan uang",
+    "waktu dan jadwal",
+  ];
+  const acakSudut = [...sudut].sort(() => Math.random() - 0.5).slice(0, 3);
+  const nonce = Math.random().toString(36).slice(2, 8);
+
   const prompt = PROMPT_SOAL
     .replace("{JUMLAH}", String(jumlah))
     .replace("{LEVEL}", level)
-    .replace("{TOPIK}", topik);
+    .replace("{TOPIK}", topik)
+    .replace(
+      "{VARIASI}",
+      `Sesi acak #${nonce}. WAJIB pilih kata yang BERBEDA dari sesi sebelumnya — ` +
+        `jangan selalu mulai dari kata yang paling umum. ` +
+        `Fokuskan variasi pada sudut ini: ${acakSudut.join(", ")}. ` +
+        `Gunakan kata benda, kerja, sifat, dan keterangan yang beragam. ` +
+        `HINDARI kata yang terlalu sering muncul berikut (kecuali tidak ada pilihan lain): ` +
+        `물, 밥, 친구, 집, 학교, 안녕하세요, 감사합니다, 고기, 김치, 사람, 시간, 커피.`,
+    );
 
   const body = JSON.stringify({
     contents: [{ role: "user", parts: [{ text: prompt }] }],
@@ -171,7 +210,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
               if (bersihSoal.length >= Math.min(jumlah, 3)) {
                 res.setHeader("Cache-Control", "no-store");
                 return res.status(200).json({
-                  soal: bersihSoal.slice(0, jumlah),
+                  soal: acakArray(bersihSoal).slice(0, jumlah),
                   model,
                 });
               }
@@ -181,7 +220,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
               if (kumpulan.length >= Math.min(jumlah, 3)) {
                 res.setHeader("Cache-Control", "no-store");
                 return res.status(200).json({
-                  soal: bersihkanSoal(kumpulan).slice(0, jumlah),
+                  soal: acakArray(bersihkanSoal(kumpulan)).slice(0, jumlah),
                   model,
                 });
               }
@@ -211,7 +250,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Kalau semua percobaan habis tapi ada soal terkumpul, pakai itu
   if (kumpulan.length >= 3) {
     res.setHeader("Cache-Control", "no-store");
-    return res.status(200).json({ soal: bersihkanSoal(kumpulan).slice(0, jumlah) });
+    return res.status(200).json({ soal: acakArray(bersihkanSoal(kumpulan)).slice(0, jumlah) });
   }
 
   return res.status(503).json({
