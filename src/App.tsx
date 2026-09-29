@@ -634,9 +634,6 @@ export default function App() {
                   <h2 className="text-[28px] font-semibold text-white sm:text-[32px]">
                     How can I help you?
                   </h2>
-                  <p className="mt-3 text-[15px] text-neutral-400">
-                    Ask me anything
-                  </p>
                   {/* Desktop: chat box right under the greeting */}
                   {!isMobile && <div className="mt-8 w-full">{kotakChat}</div>}
                 </div>
