@@ -12,6 +12,7 @@ import {
 import Quiz from "./components/Quiz";
 import Gallery from "./components/Gallery";
 import VoiceMode from "./components/VoiceMode";
+import { bacaJadiTeks, jenisFile } from "./bacaFile";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
@@ -206,28 +207,42 @@ export default function App() {
     const daftar = Array.from(files).slice(0, 4);
     const baru: Lampiran[] = [];
     for (const f of daftar) {
-      const maks = 4 * 1024 * 1024; // 4 MB
-      if (f.size > maks) continue;
+      const maks = 10 * 1024 * 1024; // 10 MB
+      if (f.size > maks) {
+        alert(`"${f.name}" terlalu besar (maks 10 MB).`);
+        continue;
+      }
       const tipe = f.type || "";
-      if (tipe.startsWith("image/")) {
+      const jns = jenisFile(f.name, tipe);
+      const ext = f.name.split(".").pop()?.toLowerCase();
+
+      if (jns === "gambar") {
         const b64 = await new Promise<string>((res) => {
           const r = new FileReader();
           r.onload = () => res(String(r.result).split(",")[1] ?? "");
           r.readAsDataURL(f);
         });
-        baru.push({ nama: f.name, tipe, data: b64, jenis: "gambar", ukuran: f.size });
-      } else if (
-        tipe.startsWith("text/") ||
-        /\.(txt|md|csv|json|js|ts|tsx|jsx|py|html|css|log)$/i.test(f.name)
-      ) {
-        const isi = await f.text();
-        baru.push({
-          nama: f.name,
-          tipe: tipe || "text/plain",
-          data: isi.slice(0, 20000),
-          jenis: "teks",
-          ukuran: f.size,
-        });
+        baru.push({ nama: f.name, tipe, data: b64, jenis: "gambar", ukuran: f.size, ekstensi: ext });
+      } else if (jns === "teks" || jns === "dokumen") {
+        try {
+          const isi = await bacaJadiTeks(f);
+          baru.push({
+            nama: f.name,
+            tipe: tipe || "text/plain",
+            data: isi.slice(0, 30000),
+            jenis: "teks",
+            ukuran: f.size,
+            ekstensi: ext,
+          });
+        } catch (e) {
+          alert(
+            `Gagal membaca "${f.name}": ${
+              e instanceof Error ? e.message : "format tidak didukung"
+            }`,
+          );
+        }
+      } else {
+        alert(`Jenis file "${f.name}" belum didukung.`);
       }
     }
     if (baru.length) setLampiran((l) => [...l, ...baru].slice(0, 4));
@@ -280,30 +295,42 @@ export default function App() {
     <div className="rounded-[26px] bg-[#1f1f1f] p-2">
       {/* Preview lampiran */}
       {lampiran.length > 0 && (
-        <div className="flex flex-wrap gap-2 px-2 pb-2 pt-1">
+        <div className="flex flex-wrap gap-2 px-1 pb-2 pt-1">
           {lampiran.map((l, i) => (
             <div
               key={i}
-              className="group relative flex items-center gap-2 rounded-xl border border-[#333] bg-[#2a2a2a] px-2.5 py-1.5"
+              className="group relative overflow-hidden rounded-2xl border border-[#333] bg-[#2a2a2a]"
             >
               {l.jenis === "gambar" ? (
+                /* Gambar besar seperti ChatGPT */
                 <img
                   src={`data:${l.tipe};base64,${l.data}`}
                   alt={l.nama}
-                  className="h-8 w-8 rounded-lg object-cover"
+                  className="h-[140px] w-[140px] object-cover"
                 />
               ) : (
-                <FileText size={18} className="text-neutral-400" />
+                /* Kartu file dokumen */
+                <div className="flex h-[140px] w-[180px] flex-col justify-between p-3">
+                  <div className="flex items-center gap-2">
+                    <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#3a3a3a] text-[11px] font-bold uppercase text-white">
+                      {l.ekstensi?.slice(0, 4) ?? "FILE"}
+                    </span>
+                    <FileText size={16} className="text-neutral-400" />
+                  </div>
+                  <p className="line-clamp-3 break-all text-[12px] leading-snug text-neutral-300">
+                    {l.nama}
+                  </p>
+                  <p className="text-[11px] text-neutral-500">
+                    {Math.max(1, Math.round(l.ukuran / 1024))} KB
+                  </p>
+                </div>
               )}
-              <span className="max-w-[140px] truncate text-[12.5px] text-neutral-300">
-                {l.nama}
-              </span>
               <button
                 onClick={() => setLampiran((a) => a.filter((_, k) => k !== i))}
-                className="flex h-5 w-5 items-center justify-center rounded-full bg-black/50 text-neutral-300 transition hover:bg-black/80 hover:text-white"
+                className="absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-black/70 text-white backdrop-blur transition hover:bg-black"
                 aria-label="Hapus lampiran"
               >
-                <X size={12} />
+                <X size={13} />
               </button>
             </div>
           ))}
@@ -316,7 +343,7 @@ export default function App() {
           ref={fileRef}
           type="file"
           multiple
-          accept="image/*,.txt,.md,.csv,.json,.js,.ts,.tsx,.jsx,.py,.html,.css,.log"
+          accept="image/*,.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.csv,.txt,.md,.json,.js,.ts,.tsx,.jsx,.py,.html,.css,.log,.xml,.yml,.yaml,.sql"
           className="hidden"
           onChange={(e) => {
             tambahFile(e.target.files);
@@ -622,17 +649,19 @@ export default function App() {
                             {m.lampiran && m.lampiran.length > 0 && (
                               <div className="mb-2 flex flex-wrap gap-2">
                                 {m.lampiran.map((l, k) => (
-                                  <div key={k} className="flex items-center gap-2">
+                                  <div key={k}>
                                     {l.jenis === "gambar" ? (
                                       <img
                                         src={`data:${l.tipe};base64,${l.data}`}
                                         alt={l.nama}
-                                        className="max-h-48 rounded-xl object-cover"
+                                        className="max-h-[320px] w-auto max-w-full rounded-2xl object-cover"
                                       />
                                     ) : (
-                                      <span className="flex items-center gap-1.5 rounded-lg border border-[#333] bg-[#2a2a2a] px-2.5 py-1.5 text-[12.5px] text-neutral-300">
-                                        <FileText size={14} />
-                                        {l.nama}
+                                      <span className="flex items-center gap-2 rounded-xl border border-[#333] bg-[#2a2a2a] px-3 py-2 text-[12.5px] text-neutral-300">
+                                        <span className="flex h-7 w-7 items-center justify-center rounded-md bg-[#3a3a3a] text-[10px] font-bold uppercase text-white">
+                                          {l.ekstensi?.slice(0, 4) ?? "FILE"}
+                                        </span>
+                                        <span className="max-w-[180px] truncate">{l.nama}</span>
                                       </span>
                                     )}
                                   </div>

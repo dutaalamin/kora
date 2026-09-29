@@ -1,9 +1,10 @@
 export interface Lampiran {
   nama: string;
   tipe: string; // MIME, mis. image/png atau text/plain
-  data: string; // base64 tanpa prefix (gambar) atau isi teks (teks)
+  data: string; // base64 tanpa prefix (gambar) atau isi teks (teks/dokumen)
   jenis: "gambar" | "teks";
   ukuran: number; // byte
+  ekstensi?: string; // mis. "pdf", "docx" untuk ikon
 }
 
 export interface ChatMessage {

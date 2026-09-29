@@ -123,6 +123,7 @@ interface Lampiran {
   tipe: string;
   data: string;
   jenis: "gambar" | "teks";
+  ekstensi?: string;
 }
 
 interface Pesan {
@@ -157,7 +158,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         parts.push({ inline_data: { mime_type: l.tipe, data: l.data } });
       } else if (l.jenis === "teks") {
         parts.push({
-          text: `\n\n[Isi file "${l.nama}"]:\n${String(l.data).slice(0, 20000)}`,
+          text: `\n\n[Isi file "${l.nama}"${l.ekstensi ? ` (${l.ekstensi})` : ""}]:\n${String(l.data).slice(0, 30000)}`,
         });
       }
     }
