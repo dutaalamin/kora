@@ -452,12 +452,24 @@ body {
   0%, 49% { opacity: 1; }
   50%, 100% { opacity: 0; }
 }
-.kursor-tulis {
+/* Kursor menempel di akhir elemen terakhir (paragraf/heading/list) */
+.markdown.streaming > *:last-child::after {
+  content: "";
   display: inline-block;
   width: 7px;
   height: 17px;
   margin-left: 2px;
   vertical-align: text-bottom;
+  background: #d4d4d4;
+  border-radius: 1px;
+  animation: vo-kedip 1s steps(1) infinite;
+}
+/* Kalau markdown masih kosong, tampilkan kursor di tempat */
+.markdown.streaming:empty::after {
+  content: "";
+  display: inline-block;
+  width: 7px;
+  height: 17px;
   background: #d4d4d4;
   border-radius: 1px;
   animation: vo-kedip 1s steps(1) infinite;

@@ -78,10 +78,11 @@ export default function App() {
     if (daftar.length) simpanSemua(daftar);
   }, [daftar]);
 
-  // Auto-scroll
+  // Auto-scroll: ikuti panjang pesan terakhir supaya tetap di bawah saat streaming
+  const panjangTerakhir = pesan[pesan.length - 1]?.text.length ?? 0;
   useEffect(() => {
-    bawah.current?.scrollIntoView({ behavior: "smooth" });
-  }, [pesan.length, loading]);
+    bawah.current?.scrollIntoView({ behavior: loading ? "auto" : "smooth" });
+  }, [pesan.length, loading, panjangTerakhir]);
 
   // Fokus kotak chat saat ganti percakapan
   useEffect(() => {
@@ -843,33 +844,39 @@ export default function App() {
                             </div>
                           )
                         ) : (
-                          <div className="kr text-[16px] leading-relaxed text-white">
-                            <div className="markdown">
-                              <ReactMarkdown remarkPlugins={[remarkGfm]}>{m.text}</ReactMarkdown>
-                              {loading && i === pesan.length - 1 && (
-                                <span className="kursor-tulis" />
-                              )}
-                            </div>
-                            <div className="mt-2 flex items-center gap-1">
-                              <button
-                                onClick={() => salin(i, m.text)}
-                                className="inline-flex items-center gap-1.5 rounded-md px-1.5 py-1 text-[11px] font-medium text-neutral-500 transition hover:bg-[#1a1a1a] hover:text-neutral-200"
-                              >
-                                {copied === i ? <Check size={12} /> : <Copy size={12} />}
-                                {copied === i ? "Copied" : "Copy"}
-                              </button>
-                              {/* Regenerate hanya di jawaban AI terakhir */}
-                              {i === pesan.length - 1 && !loading && (
-                                <button
-                                  onClick={ulangi}
-                                  className="inline-flex items-center gap-1.5 rounded-md px-1.5 py-1 text-[11px] font-medium text-neutral-500 transition hover:bg-[#1a1a1a] hover:text-neutral-200"
-                                >
-                                  <RotateCw size={12} />
-                                  Regenerate
-                                </button>
-                              )}
-                            </div>
-                          </div>
+                          (() => {
+                            const sedangTulis =
+                              loading && i === pesan.length - 1 && !!m.text;
+                            return (
+                              <div className="kr text-[16px] leading-relaxed text-white">
+                                <div className={`markdown${sedangTulis ? " streaming" : ""}`}>
+                                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{m.text}</ReactMarkdown>
+                                </div>
+                                {/* Tombol aksi disembunyikan selama AI masih menulis */}
+                                {!sedangTulis && (
+                                  <div className="mt-2 flex items-center gap-1">
+                                    <button
+                                      onClick={() => salin(i, m.text)}
+                                      className="inline-flex items-center gap-1.5 rounded-md px-1.5 py-1 text-[11px] font-medium text-neutral-500 transition hover:bg-[#1a1a1a] hover:text-neutral-200"
+                                    >
+                                      {copied === i ? <Check size={12} /> : <Copy size={12} />}
+                                      {copied === i ? "Copied" : "Copy"}
+                                    </button>
+                                    {/* Regenerate hanya di jawaban AI terakhir */}
+                                    {i === pesan.length - 1 && !loading && (
+                                      <button
+                                        onClick={ulangi}
+                                        className="inline-flex items-center gap-1.5 rounded-md px-1.5 py-1 text-[11px] font-medium text-neutral-500 transition hover:bg-[#1a1a1a] hover:text-neutral-200"
+                                      >
+                                        <RotateCw size={12} />
+                                        Regenerate
+                                      </button>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })()
                         )}
                       </div>
                     </div>
