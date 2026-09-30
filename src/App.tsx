@@ -845,15 +845,21 @@ export default function App() {
                           )
                         ) : (
                           (() => {
-                            const sedangTulis =
-                              loading && i === pesan.length - 1 && !!m.text;
+                            // Sembunyikan aksi selama AI belum selesai:
+                            // teks masih kosong, atau masih mengetik.
+                            const belumSelesai =
+                              (loading && i === pesan.length - 1) || !m.text;
                             return (
                               <div className="kr text-[16px] leading-relaxed text-white">
-                                <div className={`markdown${sedangTulis ? " streaming" : ""}`}>
+                                <div
+                                  className={`markdown${
+                                    loading && i === pesan.length - 1 && m.text ? " streaming" : ""
+                                  }`}
+                                >
                                   <ReactMarkdown remarkPlugins={[remarkGfm]}>{m.text}</ReactMarkdown>
                                 </div>
-                                {/* Tombol aksi disembunyikan selama AI masih menulis */}
-                                {!sedangTulis && (
+                                {/* Tombol aksi disembunyikan sampai jawaban selesai */}
+                                {!belumSelesai && (
                                   <div className="mt-2 flex items-center gap-1">
                                     <button
                                       onClick={() => salin(i, m.text)}
