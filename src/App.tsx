@@ -397,7 +397,7 @@ export default function App() {
 
   /** Chat input box (used both on the empty state and inside a conversation). */
   const kotakChat = (
-    <div className="kora-box p-2">
+    <div className="rounded-[26px] bg-[#1f1f1f] p-2">
       {/* Preview lampiran */}
       {lampiran.length > 0 && (
         <div className="flex flex-wrap gap-2 px-1 pb-2 pt-1">
@@ -489,8 +489,7 @@ export default function App() {
           <button
             onClick={() => kirim()}
             disabled={loading}
-            style={{ background: "var(--kora-accent)" }}
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-white transition hover:opacity-90 disabled:opacity-40"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-black transition hover:bg-neutral-200 disabled:opacity-40"
             aria-label="Kirim"
           >
             {loading ? <Loader2 size={18} className="animate-spin" /> : <Send size={17} />}
@@ -729,7 +728,7 @@ export default function App() {
       )}
 
       {/* Area utama */}
-      <div className="kora-aurora flex min-w-0 flex-1 flex-col">
+      <div className="flex min-w-0 flex-1 flex-col bg-black">
         {/* Open-sidebar button (shown when sidebar is closed) */}
         {!sidebar && (
           <button
@@ -755,39 +754,17 @@ export default function App() {
           <div className="mx-auto flex min-h-full max-w-[760px] flex-col px-4 pb-6 pt-16 md:pt-6">
             {pesan.length === 0 ? (
               <>
-                {/* Greeting — identitas Kora (bukan gaya ChatGPT) */}
+                {/* Greeting */}
                 <div
                   className={`flex flex-1 flex-col items-center justify-center ${
-                    isMobile ? "" : "pb-[9vh]"
+                    isMobile ? "" : "pb-[12vh]"
                   }`}
                 >
-                  <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#141416] ring-1 ring-[#2a2a30]">
-                    <img src="/logo.svg" alt="Kora" className="h-9 w-9 rounded-lg" />
-                  </div>
-                  <h2 className="text-center text-[26px] font-semibold tracking-tight text-white sm:text-[30px]">
-                    안녕하세요, 저는 <span style={{ color: "var(--kora-accent)" }}>Kora</span>예요
+                  <h2 className="text-[28px] font-semibold text-white sm:text-[32px]">
+                    How can I help you?
                   </h2>
-                  <p className="mt-2 text-center text-[14px] text-neutral-400">
-                    Asisten bahasa Korea — terjemah, koreksi, dan latihan percakapan.
-                  </p>
-
-                  {/* Chip saran */}
-                  <div className="mt-7 grid w-full grid-cols-1 gap-2.5 sm:grid-cols-2">
-                    {[
-                      { t: "Terjemahkan ke Korea", d: "“Saya mau pesan kopi”", q: "Terjemahkan ke bahasa Korea: Saya mau pesan kopi." },
-                      { t: "Koreksi kalimatku", d: "Cek tata bahasa & kesopanan", q: "Tolong koreksi kalimat Korea ini dan jelaskan kesalahannya: 저는 밥을 먹어요." },
-                      { t: "Tingkat kesopanan", d: "Formal vs kasual", q: "Jelaskan perbedaan 반말 dan 존댓말, beri contoh." },
-                      { t: "Latihan percakapan", d: "Role-play situasi kerja", q: "Ayo latihan percakapan Korea di kantor. Kamu jadi rekan kerja saya." },
-                    ].map((c) => (
-                      <button key={c.t} className="kora-chip" onClick={() => kirim(c.q)}>
-                        <span className="t">{c.t}</span>
-                        <span className="d">{c.d}</span>
-                      </button>
-                    ))}
-                  </div>
-
                   {/* Desktop: chat box right under the greeting */}
-                  {!isMobile && <div className="mt-7 w-full">{kotakChat}</div>}
+                  {!isMobile && <div className="mt-8 w-full">{kotakChat}</div>}
                 </div>
                 {/* Mobile: chat bar at the bottom */}
                 {isMobile && <div className="w-full pb-2">{kotakChat}</div>}
@@ -839,13 +816,7 @@ export default function App() {
                               >
                                 <Pencil size={14} />
                               </button>
-                              <div
-                                style={{
-                                  background: "rgba(139,124,246,0.14)",
-                                  border: "1px solid rgba(139,124,246,0.28)",
-                                }}
-                                className="rounded-3xl px-4 py-2.5 text-[16px] leading-relaxed text-white"
-                              >
+                              <div className="rounded-3xl bg-[#1f1f1f] px-4 py-2.5 text-[16px] leading-relaxed text-white">
                                 {m.lampiran && m.lampiran.length > 0 && (
                                   <div className="mb-2 flex flex-wrap gap-2">
                                     {m.lampiran.map((l, k) => (
