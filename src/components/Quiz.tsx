@@ -207,7 +207,7 @@ export default function Quiz({
             </h1>
             <button
               onClick={onTutup}
-              className="dl-muted flex h-10 w-10 items-center justify-center rounded-xl transition hover:bg-[#1f1f1f]"
+              className="dl-muted flex h-10 w-10 items-center justify-center rounded-xl transition hover:bg-[#efe8db]"
             >
               <X size={20} />
             </button>
@@ -280,7 +280,7 @@ export default function Quiz({
                   className={`dl-card flex items-center gap-2 rounded-2xl border-2 px-3.5 py-3.5 text-left text-[14px] font-bold transition ${
                     aktif
                       ? "dl-card-aktif"
-                      : "hover:!bg-[#1c1c1c]"
+                      : "hover:!bg-[#efe8db]"
                   }`}
                 >
                   <span className="text-[19px]">{t.emoji}</span>
@@ -304,7 +304,7 @@ export default function Quiz({
                   className={`dl-card flex-1 rounded-2xl border-2 py-3 text-[13.5px] font-bold transition ${
                     aktif
                       ? "dl-card-aktif"
-                      : "hover:!bg-[#1c1c1c]"
+                      : "hover:!bg-[#efe8db]"
                   }`}
                 >
                   {l.label}
@@ -429,7 +429,7 @@ export default function Quiz({
         <div className="mx-auto flex max-w-[560px] items-center gap-3">
           <button
             onClick={() => setLayar("menu")}
-            className="dl-muted flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition hover:bg-[#1f1f1f]"
+            className="dl-muted flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition hover:bg-[#efe8db]"
           >
             <X size={20} />
           </button>
@@ -522,7 +522,7 @@ export default function Quiz({
             ? tepat
               ? "dl-banner-benar border-[#d7ffb8] bg-[#d7ffb8]"
               : "dl-banner-salah border-[#ffdfe0] bg-[#ffdfe0]"
-            : "dl-banner-netral border-[#e5e5e5] bg-white"
+            : "dl-banner-netral border-[#ddd3c2] bg-[#faf6ee]"
         }`}
       >
         <div className="mx-auto flex max-w-[560px] items-center gap-4">
@@ -530,7 +530,7 @@ export default function Quiz({
             <div className="dl-pop flex flex-1 items-center gap-3">
               <div
                 className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full ${
-                  tepat ? "bg-white" : "bg-white"
+                  tepat ? "bg-[#faf6ee]" : "bg-[#faf6ee]"
                 }`}
               >
                 {tepat ? (

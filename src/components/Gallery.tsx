@@ -21,7 +21,7 @@ export default function Gallery({ onTutup }: { onTutup: () => void }) {
   const [teks, setTeks] = useState("");
 
   return (
-    <div className="relative h-full bg-black text-white">
+    <div className="relative h-full bg-[#f4efe6] text-[#2b2620]">
       {/* Area gulir */}
       <div className="h-full overflow-y-auto">
         <div className="mx-auto w-full max-w-[1100px] px-6 pb-32 pt-6">
@@ -29,9 +29,9 @@ export default function Gallery({ onTutup }: { onTutup: () => void }) {
           <h1 className="text-[28px] font-semibold tracking-tight">Images</h1>
 
           {/* Bar "Describe a new image" */}
-          <div className="mt-5 flex items-center gap-2 rounded-full bg-[#1f1f1f] py-2 pl-4 pr-2">
+          <div className="mt-5 flex items-center gap-2 rounded-full bg-[#faf6ee] border border-[#ddd3c2] py-2 pl-4 pr-2">
             <button
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-neutral-400 transition hover:bg-[#2a2a2a] hover:text-white"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[#8a7f6c] transition hover:bg-[#efe8db] hover:text-[#2b2620]"
               aria-label="Attach"
             >
               <Paperclip size={18} />
@@ -40,10 +40,10 @@ export default function Gallery({ onTutup }: { onTutup: () => void }) {
               value={teks}
               onChange={(e) => setTeks(e.target.value)}
               placeholder="Describe a new image"
-              className="w-full bg-transparent text-[16px] text-white outline-none placeholder:text-neutral-400"
+              className="w-full bg-transparent text-[16px] text-[#2b2620] outline-none placeholder:text-[#8a7f6c]"
             />
             <button
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-neutral-400 transition hover:bg-[#2a2a2a] hover:text-white"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[#8a7f6c] transition hover:bg-[#efe8db] hover:text-[#2b2620]"
               aria-label="Voice"
             >
               <Mic size={18} />
@@ -51,7 +51,7 @@ export default function Gallery({ onTutup }: { onTutup: () => void }) {
             <button
               onClick={onTutup}
               disabled={!teks.trim()}
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#3a3a3a] text-white transition hover:bg-[#4a4a4a] disabled:opacity-40"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#b3402e] text-[#2b2620] transition hover:bg-[#9c3626] disabled:opacity-40"
               aria-label="Generate"
             >
               <ArrowUp size={18} />
@@ -67,7 +67,7 @@ export default function Gallery({ onTutup }: { onTutup: () => void }) {
               <button
                 key={k.judul}
                 onClick={() => {}}
-                className="group relative overflow-hidden rounded-2xl border border-[#1f1f1f] bg-[#0f0f0f] text-left"
+                className="group relative overflow-hidden rounded-2xl border border-[#ddd3c2] bg-[#faf6ee] text-left"
               >
                 <img
                   src={k.gambar}
@@ -84,13 +84,13 @@ export default function Gallery({ onTutup }: { onTutup: () => void }) {
       </div>
 
       {/* Gradasi pudar di bawah (hanya area konten) */}
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black via-black/80 to-transparent" />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-[#f4efe6] via-[#f4efe6]/80 to-transparent" />
 
       {/* Tombol bawah gaya ChatGPT */}
       <div className="pointer-events-none absolute inset-x-0 bottom-0 flex justify-center pb-7">
         <button
           onClick={onTutup}
-          className="pointer-events-auto rounded-full bg-white px-5 py-2.5 text-[14px] font-semibold text-black shadow-lg transition hover:bg-neutral-200"
+          className="pointer-events-auto rounded-full border border-[#ddd3c2] bg-[#faf6ee] px-5 py-2.5 text-[14px] font-semibold text-[#2b2620] shadow-md transition hover:bg-[#efe8db]"
         >
           Log in or sign up to see more
         </button>

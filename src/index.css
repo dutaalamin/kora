@@ -227,12 +227,12 @@ body {
 }
 
 .dl-green {
-  background: #58cc02;
-  color: #2b2620;
-  box-shadow: 0 4px 0 #58a700;
+  background: #b3402e;
+  color: #faf6ee;
+  box-shadow: 0 4px 0 #8f3324;
 }
 .dl-green:hover:not(:disabled) {
-  background: #61e002;
+  background: #c04a37;
 }
 
 .dl-blue {
@@ -399,96 +399,99 @@ body {
   color: #1899d6;
 }
 
+/* ============================================================
+   TEMA HANJI untuk kuis — krem hangat + vermilion
+   ============================================================ */
 .dl-dark {
-  background: #0a0a0a;
-  color: #e5e5e5;
+  background: #f4efe6;
+  color: #2b2620;
 }
 
 .dl-dark .dl-card-aktif {
-  border-color: #1cb0f6 !important;
-  background: #0b2942 !important;
-  color: #6cc9ff !important;
+  border-color: #b3402e !important;
+  background: rgba(179, 64, 46, 0.10) !important;
+  color: #b3402e !important;
 }
 
 /* Kartu & panel */
 .dl-dark .dl-card {
-  background: #efe8db !important;
+  background: #faf6ee !important;
   border-color: #ddd3c2 !important;
-  color: #f5f5f5 !important;
+  color: #2b2620 !important;
 }
 .dl-dark .dl-muted {
   color: #8a7f6c !important;
 }
 .dl-dark .dl-teks {
-  color: #f5f5f5 !important;
+  color: #2b2620 !important;
 }
 .dl-dark .dl-garis {
   border-color: #ddd3c2 !important;
 }
 .dl-dark .dl-track {
-  background: #ddd3c2 !important;
+  background: #e0d6c4 !important;
 }
 
 /* Pilihan jawaban */
 .dl-dark .dl-pilih {
-  background: #efe8db;
+  background: #faf6ee;
   border-color: #ddd3c2;
-  color: #ededed;
+  color: #2b2620;
 }
 .dl-dark .dl-pilih:hover:not(:disabled) {
-  background: #1c1c1c;
+  background: #efe8db;
 }
 .dl-dark .dl-pilih-aktif {
-  background: #0b2942;
-  border-color: #1cb0f6;
-  color: #6cc9ff;
+  background: rgba(179, 64, 46, 0.10);
+  border-color: #b3402e;
+  color: #b3402e;
 }
 .dl-dark .dl-pilih-benar {
-  background: #14351a;
-  border-color: #58cc02;
-  color: #7ede2a;
+  background: #e8f5e0;
+  border-color: #58a700;
+  color: #3f7a00;
 }
 .dl-dark .dl-pilih-salah {
-  background: #3a1414;
-  border-color: #ff4b4b;
-  color: #ff7a7a;
+  background: #fdecea;
+  border-color: #d93025;
+  color: #b3261e;
 }
 .dl-dark .dl-pilih-mati {
   opacity: 0.35;
 }
 
-/* Tombol putih jadi gelap */
+/* Tombol putih jadi krem */
 .dl-dark .dl-white {
-  background: #efe8db;
-  color: #ededed;
+  background: #faf6ee;
+  color: #2b2620;
   border-color: #ddd3c2;
-  box-shadow: 0 4px 0 #0f0f0f;
+  box-shadow: 0 4px 0 #e0d6c4;
 }
 .dl-dark .dl-white:hover:not(:disabled) {
-  background: #242424;
+  background: #efe8db;
 }
 .dl-dark .dl-gray {
-  background: #1f1f1f;
-  color: #6a6a6a;
+  background: #efe8db;
+  color: #8a7f6c;
 }
 
 /* Banner feedback */
 .dl-dark .dl-banner-benar {
-  background: #14351a !important;
-  border-color: #1f5c22 !important;
+  background: #e8f5e0 !important;
+  border-color: #b8e29a !important;
 }
 .dl-dark .dl-banner-salah {
-  background: #3a1414 !important;
-  border-color: #6b2020 !important;
+  background: #fdecea !important;
+  border-color: #f3b7b1 !important;
 }
 .dl-dark .dl-banner-netral {
-  background: #0f0f0f !important;
+  background: #faf6ee !important;
   border-color: #ddd3c2 !important;
 }
 
-/* Kartu statistik terang */
+/* Kartu statistik */
 .dl-dark .dl-stat {
-  background: #efe8db !important;
+  background: #faf6ee !important;
   border-color: #ddd3c2 !important;
 }
 
