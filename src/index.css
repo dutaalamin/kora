@@ -1,9 +1,11 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600;700&display=swap');
 @import "tailwindcss";
 
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
     Roboto, sans-serif;
-  --font-kr: "Malgun Gothic", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+  --font-kr: "Noto Serif KR", "Malgun Gothic", "Apple SD Gothic Neo",
+    "Noto Sans KR", serif;
 }
 
 html,
@@ -14,9 +16,61 @@ body,
 
 body {
   margin: 0;
-  background: #000000;
-  color: #ffffff;
+  background: #f4efe6;
+  color: #2b2620;
   -webkit-font-smoothing: antialiased;
+}
+
+/* ── Tema Hanji: krem hangat + vermilion Korea ── */
+:root {
+  --hanji-bg: #f4efe6;
+  --hanji-panel: #efe8db;
+  --hanji-surface: #faf6ee;
+  --hanji-border: #ddd3c2;
+  --hanji-ink: #2b2620;
+  --hanji-accent: #b3402e;
+}
+
+/* Cahaya lembut vermilion di latar */
+.hanji-bg {
+  position: relative;
+  background:
+    radial-gradient(52% 40% at 50% 0%, rgba(179, 64, 46, 0.06), transparent 70%),
+    var(--hanji-bg);
+}
+
+/* Chip saran */
+.hanji-chip {
+  border: 1px solid var(--hanji-border);
+  border-radius: 13px;
+  background: var(--hanji-surface);
+  transition: border-color 0.18s ease, background 0.18s ease, transform 0.18s ease;
+}
+.hanji-chip:hover {
+  border-color: var(--hanji-accent);
+  transform: translateY(-2px);
+}
+.hanji-chip .t {
+  display: block;
+  font-size: 13.5px;
+  font-weight: 600;
+  margin-bottom: 3px;
+}
+.hanji-chip .d {
+  font-size: 12px;
+  color: #948a76;
+}
+
+/* Kotak chat */
+.hanji-box {
+  border: 1px solid var(--hanji-border);
+  border-radius: 15px;
+  background: var(--hanji-surface);
+  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+}
+.hanji-box:focus-within {
+  border-color: var(--hanji-accent);
+  box-shadow: 0 0 0 3px rgba(179, 64, 46, 0.14);
 }
 
 /* Teks Korea pakai font khusus agar tidak kotak-kotak */
@@ -30,7 +84,7 @@ body {
   width: 6px;
   height: 6px;
   border-radius: 9999px;
-  background: #8a8a8a;
+  background: #8a7f6c;
   animation: kora-bounce 1.2s infinite ease-in-out;
 }
 
@@ -63,7 +117,7 @@ body {
 .markdown h4 {
   margin: 0.9rem 0 0.4rem;
   font-weight: 600;
-  color: #ffffff;
+  color: #2b2620;
 }
 .markdown h1 {
   font-size: 1.05rem;
@@ -93,20 +147,20 @@ body {
 }
 .markdown strong {
   font-weight: 600;
-  color: #ffffff;
+  color: #2b2620;
 }
 .markdown em {
   font-style: italic;
-  color: #a3a3a3;
+  color: #7a6f5d;
 }
 .markdown hr {
   margin: 0.9rem 0;
   border: 0;
-  border-top: 1px solid #262626;
+  border-top: 1px solid #ddd3c2;
 }
 .markdown code {
   border-radius: 0.35rem;
-  background: #141414;
+  background: #efe8db;
   padding: 0.1rem 0.35rem;
   font-size: 0.85em;
 }
@@ -114,7 +168,7 @@ body {
   margin: 0.5rem 0;
   overflow-x: auto;
   border-radius: 0.6rem;
-  background: #141414;
+  background: #efe8db;
   padding: 0.75rem;
 }
 .markdown pre code {
@@ -129,22 +183,22 @@ body {
 }
 .markdown th,
 .markdown td {
-  border: 1px solid #262626;
+  border: 1px solid #ddd3c2;
   padding: 0.35rem 0.6rem;
   text-align: left;
 }
 .markdown th {
-  background: #141414;
+  background: #efe8db;
   font-weight: 600;
 }
 .markdown blockquote {
   margin: 0.5rem 0;
   border-left: 3px solid #404040;
   padding-left: 0.75rem;
-  color: #a3a3a3;
+  color: #7a6f5d;
 }
 .markdown a {
-  color: #ffffff;
+  color: #2b2620;
   text-decoration: underline;
 }
 
@@ -174,7 +228,7 @@ body {
 
 .dl-green {
   background: #58cc02;
-  color: #ffffff;
+  color: #2b2620;
   box-shadow: 0 4px 0 #58a700;
 }
 .dl-green:hover:not(:disabled) {
@@ -183,7 +237,7 @@ body {
 
 .dl-blue {
   background: #1cb0f6;
-  color: #ffffff;
+  color: #2b2620;
   box-shadow: 0 4px 0 #1899d6;
 }
 .dl-blue:hover:not(:disabled) {
@@ -191,7 +245,7 @@ body {
 }
 
 .dl-white {
-  background: #ffffff;
+  background: #2b2620;
   color: #1cb0f6;
   border: 2px solid #e5e5e5;
   box-shadow: 0 4px 0 #e5e5e5;
@@ -208,13 +262,13 @@ body {
 
 .dl-red {
   background: #ff4b4b;
-  color: #ffffff;
+  color: #2b2620;
   box-shadow: 0 4px 0 #ea2b2b;
 }
 
 /* Pilihan jawaban */
 .dl-pilih {
-  background: #ffffff;
+  background: #2b2620;
   border: 2px solid #e5e5e5;
   border-bottom-width: 4px;
   color: #3c3c3c;
@@ -315,7 +369,7 @@ body {
 
 /* ---------- Latar terang ---------- */
 .dl-bg {
-  background: #ffffff;
+  background: #2b2620;
   color: #3c3c3c;
 }
 
@@ -324,7 +378,7 @@ body {
    ============================================================ */
 /* Dasar (mode terang) */
 .dl-card {
-  background: #ffffff;
+  background: #2b2620;
   border-color: #e5e5e5;
   color: #3c3c3c;
 }
@@ -358,27 +412,27 @@ body {
 
 /* Kartu & panel */
 .dl-dark .dl-card {
-  background: #141414 !important;
-  border-color: #262626 !important;
+  background: #efe8db !important;
+  border-color: #ddd3c2 !important;
   color: #f5f5f5 !important;
 }
 .dl-dark .dl-muted {
-  color: #8a8a8a !important;
+  color: #8a7f6c !important;
 }
 .dl-dark .dl-teks {
   color: #f5f5f5 !important;
 }
 .dl-dark .dl-garis {
-  border-color: #262626 !important;
+  border-color: #ddd3c2 !important;
 }
 .dl-dark .dl-track {
-  background: #262626 !important;
+  background: #ddd3c2 !important;
 }
 
 /* Pilihan jawaban */
 .dl-dark .dl-pilih {
-  background: #141414;
-  border-color: #2a2a2a;
+  background: #efe8db;
+  border-color: #ddd3c2;
   color: #ededed;
 }
 .dl-dark .dl-pilih:hover:not(:disabled) {
@@ -405,9 +459,9 @@ body {
 
 /* Tombol putih jadi gelap */
 .dl-dark .dl-white {
-  background: #1a1a1a;
+  background: #efe8db;
   color: #ededed;
-  border-color: #2a2a2a;
+  border-color: #ddd3c2;
   box-shadow: 0 4px 0 #0f0f0f;
 }
 .dl-dark .dl-white:hover:not(:disabled) {
@@ -429,13 +483,13 @@ body {
 }
 .dl-dark .dl-banner-netral {
   background: #0f0f0f !important;
-  border-color: #262626 !important;
+  border-color: #ddd3c2 !important;
 }
 
 /* Kartu statistik terang */
 .dl-dark .dl-stat {
-  background: #141414 !important;
-  border-color: #262626 !important;
+  background: #efe8db !important;
+  border-color: #ddd3c2 !important;
 }
 
 /* ---------- Voice mode orb ---------- */

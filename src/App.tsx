@@ -397,14 +397,14 @@ export default function App() {
 
   /** Chat input box (used both on the empty state and inside a conversation). */
   const kotakChat = (
-    <div className="rounded-[26px] bg-[#1f1f1f] p-2">
+    <div className="hanji-box p-2">
       {/* Preview lampiran */}
       {lampiran.length > 0 && (
         <div className="flex flex-wrap gap-2 px-1 pb-2 pt-1">
           {lampiran.map((l, i) => (
             <div
               key={i}
-              className="group relative overflow-hidden rounded-2xl border border-[#333] bg-[#2a2a2a]"
+              className="group relative overflow-hidden rounded-2xl border border-[#ddd3c2] bg-[#efe8db]"
             >
               {l.jenis === "gambar" ? (
                 /* Gambar besar seperti ChatGPT */
@@ -417,22 +417,22 @@ export default function App() {
                 /* Kartu file dokumen */
                 <div className="flex h-[140px] w-[180px] flex-col justify-between p-3">
                   <div className="flex items-center gap-2">
-                    <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#3a3a3a] text-[11px] font-bold uppercase text-white">
+                    <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#e0d6c4] text-[11px] font-bold uppercase text-[#2b2620]">
                       {l.ekstensi?.slice(0, 4) ?? "FILE"}
                     </span>
-                    <FileText size={16} className="text-neutral-400" />
+                    <FileText size={16} className="text-[#8a7f6c]" />
                   </div>
-                  <p className="line-clamp-3 break-all text-[12px] leading-snug text-neutral-300">
+                  <p className="line-clamp-3 break-all text-[12px] leading-snug text-[#6b6152]">
                     {l.nama}
                   </p>
-                  <p className="text-[11px] text-neutral-500">
+                  <p className="text-[11px] text-[#a89c86]">
                     {Math.max(1, Math.round(l.ukuran / 1024))} KB
                   </p>
                 </div>
               )}
               <button
                 onClick={() => setLampiran((a) => a.filter((_, k) => k !== i))}
-                className="absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-black/70 text-white backdrop-blur transition hover:bg-black"
+                className="absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-[#2b2620]/40 text-[#2b2620] backdrop-blur transition hover:bg-[#f4efe6]"
                 aria-label="Hapus lampiran"
               >
                 <X size={13} />
@@ -457,7 +457,7 @@ export default function App() {
         />
         <button
           onClick={() => fileRef.current?.click()}
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-neutral-400 transition hover:bg-[#2a2a2a] hover:text-white"
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-[#8a7f6c] transition hover:bg-[#efe8db] hover:text-[#2b2620]"
           aria-label="Tambah file"
           title="Tambah file"
         >
@@ -471,13 +471,13 @@ export default function App() {
           onKeyDown={onKey}
           rows={1}
           placeholder="Ask Kora"
-          className="max-h-[180px] min-h-[36px] flex-1 resize-none self-center bg-transparent px-1 py-2 text-[16px] text-white outline-none placeholder:text-neutral-400"
+          className="max-h-[180px] min-h-[36px] flex-1 resize-none self-center bg-transparent px-1 py-2 text-[16px] text-[#2b2620] outline-none placeholder:text-[#8a7f6c]"
         />
 
         {/* Voice mode penuh */}
         <button
           onClick={() => setVoiceTerbuka(true)}
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-neutral-400 transition hover:bg-[#2a2a2a] hover:text-white"
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-[#8a7f6c] transition hover:bg-[#efe8db] hover:text-[#2b2620]"
           aria-label="Mode suara"
           title="Mode suara"
         >
@@ -489,7 +489,7 @@ export default function App() {
           <button
             onClick={() => kirim()}
             disabled={loading}
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-black transition hover:bg-neutral-200 disabled:opacity-40"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#b3402e] text-[#faf6ee] transition hover:bg-[#9c3626] disabled:opacity-40"
             aria-label="Kirim"
           >
             {loading ? <Loader2 size={18} className="animate-spin" /> : <Send size={17} />}
@@ -499,8 +499,8 @@ export default function App() {
             onClick={rekamSuara}
             className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition ${
               merekam
-                ? "animate-pulse bg-red-500 text-white"
-                : "text-neutral-400 hover:bg-[#2a2a2a] hover:text-white"
+                ? "animate-pulse bg-red-500 text-[#2b2620]"
+                : "text-[#8a7f6c] hover:bg-[#efe8db] hover:text-[#2b2620]"
             }`}
             aria-label={merekam ? "Berhenti merekam" : "Bicara"}
             title={merekam ? "Berhenti merekam" : "Bicara"}
@@ -514,7 +514,7 @@ export default function App() {
 
   return (
     <div
-      className="flex h-full bg-black text-white"
+      className="flex h-full bg-[#f4efe6] text-[#2b2620]"
       onDragOver={(e) => {
         e.preventDefault();
         if (!seret) setSeret(true);
@@ -530,11 +530,11 @@ export default function App() {
     >
       {/* Overlay saat file diseret */}
       {seret && (
-        <div className="pointer-events-none fixed inset-0 z-[80] flex items-center justify-center bg-black/70 backdrop-blur-sm">
-          <div className="rounded-3xl border-2 border-dashed border-[#4a4a4a] bg-[#111] px-12 py-10 text-center">
-            <Paperclip size={38} className="mx-auto mb-3 text-neutral-300" />
-            <p className="text-[17px] font-semibold text-white">Lepaskan file di sini</p>
-            <p className="mt-1 text-[13px] text-neutral-400">
+        <div className="pointer-events-none fixed inset-0 z-[80] flex items-center justify-center bg-[#2b2620]/40 backdrop-blur-sm">
+          <div className="rounded-3xl border-2 border-dashed border-[#c9bda6] bg-[#faf6ee] px-12 py-10 text-center">
+            <Paperclip size={38} className="mx-auto mb-3 text-[#6b6152]" />
+            <p className="text-[17px] font-semibold text-[#2b2620]">Lepaskan file di sini</p>
+            <p className="mt-1 text-[13px] text-[#8a7f6c]">
               Gambar, PDF, Word, Excel, atau teks
             </p>
           </div>
@@ -542,27 +542,32 @@ export default function App() {
       )}
       {/* Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-40 flex w-[260px] shrink-0 flex-col bg-black transition-transform duration-200 md:static md:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-40 flex w-[260px] shrink-0 flex-col bg-[#f4efe6] transition-transform duration-200 md:static md:translate-x-0 ${
           sidebar ? "translate-x-0" : "-translate-x-full md:hidden"
         }`}
       >
         {/* Logo + name */}
         <div className="flex items-center justify-between px-3 pb-1 pt-3">
           <div className="flex items-center gap-2.5 px-1">
-            <img src="/logo.svg" alt="Kora" className="h-9 w-9 rounded-lg" />
-            <span className="text-[20px] font-semibold tracking-tight text-white">Kora</span>
+            <div
+              className="flex h-9 w-9 items-center justify-center rounded-[9px]"
+              style={{ background: "var(--hanji-accent)", color: "#faf6ee" }}
+            >
+              <span className="kr text-[18px] font-bold">고</span>
+            </div>
+            <span className="text-[20px] font-semibold tracking-tight text-[#2b2620]">Kora</span>
           </div>
           <div className="flex items-center gap-0.5">
             <button
               onClick={() => setCariBuka((v) => !v)}
-              className="flex h-8 w-8 items-center justify-center rounded-lg text-neutral-400 transition hover:bg-[#1a1a1a] hover:text-white"
+              className="flex h-8 w-8 items-center justify-center rounded-lg text-[#8a7f6c] transition hover:bg-[#efe8db] hover:text-[#2b2620]"
               aria-label="Search"
             >
               <Search size={17} />
             </button>
             <button
               onClick={() => setSidebar(false)}
-              className="flex h-8 w-8 items-center justify-center rounded-lg text-neutral-400 transition hover:bg-[#1a1a1a] hover:text-white"
+              className="flex h-8 w-8 items-center justify-center rounded-lg text-[#8a7f6c] transition hover:bg-[#efe8db] hover:text-[#2b2620]"
               aria-label="Close sidebar"
             >
               <PanelLeft size={17} />
@@ -573,19 +578,19 @@ export default function App() {
         {/* Search box */}
         {cariBuka && (
           <div className="px-2 pb-1 pt-1">
-            <div className="flex items-center gap-2 rounded-lg bg-[#1a1a1a] px-3 py-2">
-              <Search size={15} className="shrink-0 text-neutral-500" />
+            <div className="flex items-center gap-2 rounded-lg bg-[#efe8db] px-3 py-2">
+              <Search size={15} className="shrink-0 text-[#a89c86]" />
               <input
                 autoFocus
                 value={cari}
                 onChange={(e) => setCari(e.target.value)}
                 placeholder="Search chats"
-                className="w-full bg-transparent text-[14px] text-white outline-none placeholder:text-neutral-500"
+                className="w-full bg-transparent text-[14px] text-[#2b2620] outline-none placeholder:text-[#a89c86]"
               />
               {cari && (
                 <button
                   onClick={() => setCari("")}
-                  className="shrink-0 text-neutral-500 hover:text-white"
+                  className="shrink-0 text-[#a89c86] hover:text-[#2b2620]"
                   aria-label="Clear"
                 >
                   <X size={14} />
@@ -599,7 +604,7 @@ export default function App() {
         <div className="px-2 pb-1 pt-2">
           <button
             onClick={newChat}
-            className="flex w-full items-center gap-2.5 rounded-lg bg-[#1a1a1a] px-3 py-2.5 text-[14px] font-medium text-white transition hover:bg-[#242424]"
+            className="flex w-full items-center gap-2.5 rounded-lg bg-[#efe8db] px-3 py-2.5 text-[14px] font-medium text-[#2b2620] transition hover:bg-[#e6ddcc]"
           >
             <SquarePen size={17} />
             New chat
@@ -614,9 +619,9 @@ export default function App() {
               setQuizTerbuka(false);
               if (window.innerWidth < 768) setSidebar(false);
             }}
-            className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-[14px] font-medium text-white transition hover:bg-[#1a1a1a]"
+            className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-[14px] font-medium text-[#2b2620] transition hover:bg-[#efe8db]"
           >
-            <Images size={17} className="text-neutral-300" />
+            <Images size={17} className="text-[#6b6152]" />
             Images
           </button>
 
@@ -626,9 +631,9 @@ export default function App() {
               setGaleriTerbuka(false);
               if (window.innerWidth < 768) setSidebar(false);
             }}
-            className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-[14px] font-medium text-white transition hover:bg-[#1a1a1a]"
+            className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-[14px] font-medium text-[#2b2620] transition hover:bg-[#efe8db]"
           >
-            <Gamepad2 size={17} className="text-neutral-300" />
+            <Gamepad2 size={17} className="text-[#6b6152]" />
             Games
           </button>
         </div>
@@ -637,19 +642,19 @@ export default function App() {
         {sudahLogin ? (
           <div className="flex-1 overflow-y-auto px-2 pb-3">
             {urut.length === 0 ? (
-              <p className="px-3 py-6 text-center text-[12px] text-neutral-500">
+              <p className="px-3 py-6 text-center text-[12px] text-[#a89c86]">
                 No conversations yet
               </p>
             ) : (
               <>
-                <p className="px-3 pb-1 pt-3 text-[11.5px] font-medium text-neutral-500">
+                <p className="px-3 pb-1 pt-3 text-[11.5px] font-medium text-[#a89c86]">
                   Recents
                 </p>
                 {urut.map((p) => (
                   <div
                     key={p.id}
                     className={`group flex items-center gap-1 rounded-lg pr-1 transition ${
-                      p.id === aktifId ? "bg-[#1a1a1a]" : "hover:bg-[#141414]"
+                      p.id === aktifId ? "bg-[#efe8db]" : "hover:bg-[#efe8db]"
                     }`}
                   >
                     <button
@@ -662,11 +667,11 @@ export default function App() {
                       }}
                       className="flex min-w-0 flex-1 items-center px-3 py-2.5 text-left"
                     >
-                      <span className="truncate text-[14px] text-neutral-200">{p.judul}</span>
+                      <span className="truncate text-[14px] text-[#4a4237]">{p.judul}</span>
                     </button>
                     <button
                       onClick={() => removeChat(p.id)}
-                      className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-neutral-500 opacity-0 transition group-hover:opacity-100 hover:bg-[#242424] hover:text-white"
+                      className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-[#a89c86] opacity-0 transition group-hover:opacity-100 hover:bg-[#e6ddcc] hover:text-[#2b2620]"
                       aria-label="Delete"
                     >
                       <Trash2 size={14} />
@@ -685,7 +690,7 @@ export default function App() {
           <div className="px-3 pb-3">
             <button
               onClick={() => alert("Fitur login belum tersedia.")}
-              className="w-full rounded-full border border-[#3a3a3a] bg-transparent py-2.5 text-[14px] font-semibold text-white transition hover:bg-[#1a1a1a]"
+              className="w-full rounded-full border border-[#ddd3c2] bg-transparent py-2.5 text-[14px] font-semibold text-[#2b2620] transition hover:bg-[#efe8db]"
             >
               Log in
             </button>
@@ -697,7 +702,7 @@ export default function App() {
       {sidebar && (
         <div
           onClick={() => setSidebar(false)}
-          className="fixed inset-0 z-30 bg-black/80 backdrop-blur-sm md:hidden"
+          className="fixed inset-0 z-30 bg-[#2b2620]/40 backdrop-blur-sm md:hidden"
         />
       )}
 
@@ -728,12 +733,12 @@ export default function App() {
       )}
 
       {/* Area utama */}
-      <div className="flex min-w-0 flex-1 flex-col bg-black">
+      <div className="hanji-bg flex min-w-0 flex-1 flex-col">
         {/* Open-sidebar button (shown when sidebar is closed) */}
         {!sidebar && (
           <button
             onClick={() => setSidebar(true)}
-            className="fixed left-3 top-3 z-20 flex h-9 w-9 items-center justify-center rounded-lg bg-[#1a1a1a] text-neutral-300 transition hover:bg-[#242424] hover:text-white"
+            className="fixed left-3 top-3 z-20 flex h-9 w-9 items-center justify-center rounded-lg bg-[#efe8db] text-[#6b6152] transition hover:bg-[#e6ddcc] hover:text-[#2b2620]"
             aria-label="Open sidebar"
           >
             <PanelLeft size={18} />
@@ -754,17 +759,49 @@ export default function App() {
           <div className="mx-auto flex min-h-full max-w-[760px] flex-col px-4 pb-6 pt-16 md:pt-6">
             {pesan.length === 0 ? (
               <>
-                {/* Greeting */}
+                {/* Greeting — tema Hanji */}
                 <div
                   className={`flex flex-1 flex-col items-center justify-center ${
-                    isMobile ? "" : "pb-[12vh]"
+                    isMobile ? "" : "pb-[9vh]"
                   }`}
                 >
-                  <h2 className="text-[28px] font-semibold text-white sm:text-[32px]">
-                    How can I help you?
+                  <div
+                    className="mb-6 flex h-[58px] w-[58px] items-center justify-center rounded-full border-[1.5px]"
+                    style={{ borderColor: "var(--hanji-accent)", color: "var(--hanji-accent)" }}
+                  >
+                    <span className="kr text-[26px] font-bold">고</span>
+                  </div>
+                  <h2 className="kr text-center text-[26px] font-semibold leading-tight text-[#2b2620] sm:text-[31px]">
+                    무엇을 도와드릴까요?
                   </h2>
+                  <p
+                    className="mt-2 text-center text-[20px] font-semibold sm:text-[24px]"
+                    style={{ color: "var(--hanji-accent)" }}
+                  >
+                    Ada yang bisa Kora bantu?
+                  </p>
+                  <p className="mt-3 max-w-[440px] text-center text-[13.5px] text-[#8a7f6c]">
+                    Terjemah, koreksi tata bahasa, dan latihan percakapan Korea.
+                  </p>
+                  <div className="my-6 h-px w-[56px] bg-[#d8cdb8]" />
+
+                  {/* Chip saran */}
+                  <div className="grid w-full grid-cols-1 gap-3 sm:grid-cols-2">
+                    {[
+                      { t: "Terjemahkan", d: "Indonesia → Korea", q: "Terjemahkan ke bahasa Korea: Saya mau pesan kopi." },
+                      { t: "Koreksi kalimat", d: "Tata bahasa & kesopanan", q: "Tolong koreksi kalimat Korea ini dan jelaskan kesalahannya: 저는 밥을 먹어요." },
+                      { t: "Tingkat kesopanan", d: "반말 vs 존댓말", q: "Jelaskan perbedaan 반말 dan 존댓말, beri contoh." },
+                      { t: "Latihan bicara", d: "Role-play situasi", q: "Ayo latihan percakapan Korea di kantor. Kamu jadi rekan kerja saya." },
+                    ].map((c) => (
+                      <button key={c.t} className="hanji-chip px-4 py-3.5 text-left" onClick={() => kirim(c.q)}>
+                        <span className="t">{c.t}</span>
+                        <span className="d">{c.d}</span>
+                      </button>
+                    ))}
+                  </div>
+
                   {/* Desktop: chat box right under the greeting */}
-                  {!isMobile && <div className="mt-8 w-full">{kotakChat}</div>}
+                  {!isMobile && <div className="mt-6 w-full">{kotakChat}</div>}
                 </div>
                 {/* Mobile: chat bar at the bottom */}
                 {isMobile && <div className="w-full pb-2">{kotakChat}</div>}
@@ -778,13 +815,13 @@ export default function App() {
                         {m.role === "user" ? (
                           editIdx === i ? (
                             /* Mode edit pesan */
-                            <div className="rounded-2xl border border-[#3a3a3a] bg-[#1f1f1f] p-2">
+                            <div className="rounded-2xl border border-[#ddd3c2] bg-[#faf6ee] p-2">
                               <textarea
                                 value={editTeks}
                                 onChange={(e) => setEditTeks(e.target.value)}
                                 rows={Math.min(6, editTeks.split("\n").length + 1)}
                                 autoFocus
-                                className="w-full resize-none bg-transparent px-2 py-1.5 text-[16px] text-white outline-none"
+                                className="w-full resize-none bg-transparent px-2 py-1.5 text-[16px] text-[#2b2620] outline-none"
                               />
                               <div className="mt-1 flex justify-end gap-2">
                                 <button
@@ -792,14 +829,14 @@ export default function App() {
                                     setEditIdx(null);
                                     setEditTeks("");
                                   }}
-                                  className="rounded-full px-3.5 py-1.5 text-[13px] font-medium text-neutral-300 transition hover:bg-[#2a2a2a]"
+                                  className="rounded-full px-3.5 py-1.5 text-[13px] font-medium text-[#6b6152] transition hover:bg-[#efe8db]"
                                 >
                                   Cancel
                                 </button>
                                 <button
                                   onClick={simpanEdit}
                                   disabled={!editTeks.trim()}
-                                  className="rounded-full bg-white px-3.5 py-1.5 text-[13px] font-semibold text-black transition hover:bg-neutral-200 disabled:opacity-40"
+                                  className="rounded-full bg-[#b3402e] px-3.5 py-1.5 text-[13px] font-semibold text-[#faf6ee] transition hover:bg-[#9c3626] disabled:opacity-40"
                                 >
                                   Send
                                 </button>
@@ -810,13 +847,19 @@ export default function App() {
                               {/* Tombol edit (muncul saat hover) */}
                               <button
                                 onClick={() => mulaiEdit(i)}
-                                className="order-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-neutral-500 opacity-0 transition group-hover:opacity-100 hover:bg-[#1a1a1a] hover:text-white"
+                                className="order-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-[#a89c86] opacity-0 transition group-hover:opacity-100 hover:bg-[#efe8db] hover:text-[#2b2620]"
                                 aria-label="Edit pesan"
                                 title="Edit"
                               >
                                 <Pencil size={14} />
                               </button>
-                              <div className="rounded-3xl bg-[#1f1f1f] px-4 py-2.5 text-[16px] leading-relaxed text-white">
+                              <div
+                                style={{
+                                  background: "rgba(179,64,46,0.08)",
+                                  border: "1px solid rgba(179,64,46,0.22)",
+                                }}
+                                className="rounded-3xl px-4 py-2.5 text-[16px] leading-relaxed text-[#2b2620]"
+                              >
                                 {m.lampiran && m.lampiran.length > 0 && (
                                   <div className="mb-2 flex flex-wrap gap-2">
                                     {m.lampiran.map((l, k) => (
@@ -828,8 +871,8 @@ export default function App() {
                                             className="max-h-[320px] w-auto max-w-full rounded-2xl object-cover"
                                           />
                                         ) : (
-                                          <span className="flex items-center gap-2 rounded-xl border border-[#333] bg-[#2a2a2a] px-3 py-2 text-[12.5px] text-neutral-300">
-                                            <span className="flex h-7 w-7 items-center justify-center rounded-md bg-[#3a3a3a] text-[10px] font-bold uppercase text-white">
+                                          <span className="flex items-center gap-2 rounded-xl border border-[#ddd3c2] bg-[#efe8db] px-3 py-2 text-[12.5px] text-[#6b6152]">
+                                            <span className="flex h-7 w-7 items-center justify-center rounded-md bg-[#e0d6c4] text-[10px] font-bold uppercase text-[#2b2620]">
                                               {l.ekstensi?.slice(0, 4) ?? "FILE"}
                                             </span>
                                             <span className="max-w-[180px] truncate">{l.nama}</span>
@@ -850,7 +893,7 @@ export default function App() {
                             const belumSelesai =
                               (loading && i === pesan.length - 1) || !m.text;
                             return (
-                              <div className="kr text-[16px] leading-relaxed text-white">
+                              <div className="kr text-[16px] leading-relaxed text-[#2b2620]">
                                 <div
                                   className={`markdown${
                                     loading && i === pesan.length - 1 && m.text ? " streaming" : ""
@@ -863,7 +906,7 @@ export default function App() {
                                   <div className="mt-2 flex items-center gap-1">
                                     <button
                                       onClick={() => salin(i, m.text)}
-                                      className="inline-flex items-center gap-1.5 rounded-md px-1.5 py-1 text-[11px] font-medium text-neutral-500 transition hover:bg-[#1a1a1a] hover:text-neutral-200"
+                                      className="inline-flex items-center gap-1.5 rounded-md px-1.5 py-1 text-[11px] font-medium text-[#a89c86] transition hover:bg-[#efe8db] hover:text-[#2b2620]"
                                     >
                                       {copied === i ? <Check size={12} /> : <Copy size={12} />}
                                       {copied === i ? "Copied" : "Copy"}
@@ -872,7 +915,7 @@ export default function App() {
                                     {i === pesan.length - 1 && !loading && (
                                       <button
                                         onClick={ulangi}
-                                        className="inline-flex items-center gap-1.5 rounded-md px-1.5 py-1 text-[11px] font-medium text-neutral-500 transition hover:bg-[#1a1a1a] hover:text-neutral-200"
+                                        className="inline-flex items-center gap-1.5 rounded-md px-1.5 py-1 text-[11px] font-medium text-[#a89c86] transition hover:bg-[#efe8db] hover:text-[#2b2620]"
                                       >
                                         <RotateCw size={12} />
                                         Regenerate
@@ -905,7 +948,7 @@ export default function App() {
                           const terakhir = pesan.filter((p) => p.role === "user").pop();
                           if (terakhir) kirim(terakhir.text);
                         }}
-                        className="inline-flex items-center gap-2 rounded-full border border-[#3a3a3a] bg-[#1f1f1f] px-4 py-2 text-[13.5px] font-medium text-white transition hover:bg-[#2a2a2a]"
+                        className="inline-flex items-center gap-2 rounded-full border border-[#ddd3c2] bg-[#faf6ee] px-4 py-2 text-[13.5px] font-medium text-[#2b2620] transition hover:bg-[#efe8db]"
                       >
                         <RotateCw size={14} />
                         Retry
